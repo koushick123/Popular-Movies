@@ -59,9 +59,9 @@ public class MovieFragment extends Fragment  implements LoaderManager.LoaderCall
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         Log.d(LOG_TAG,"onActivityCreated");
-        ArrayList<Movie> movies = savedInstanceState.getParcelableArrayList("parcelMovies");
         if(savedInstanceState != null)
         {
+            ArrayList<Movie> movies = savedInstanceState.getParcelableArrayList("parcelMovies");
             Log.d(LOG_TAG,"load movies");
             if(movies != null)
             {
@@ -136,17 +136,11 @@ public class MovieFragment extends Fragment  implements LoaderManager.LoaderCall
     {
         super.onResume();
         Log.d(LOG_TAG,"onResume -> "+allMovies);
-        if(allMovies == null) {
+        if(allMovies == null)
+        {
             if(checkIfInternetIsAvailable())
             {
-                if (movieListView == null || (movieListView.getEmptyView() != null && !((TextView) movieListView.getEmptyView()).getText().toString().equalsIgnoreCase(EMPTY_TEXT)))
-                {
-                    if (movieListView == null) {
-                        movieListView = (GridView) getActivity().findViewById(R.id.list);
-                    }
-                    setEmptyListView(EMPTY_TEXT);
-                    loadMovies();
-                }
+                checkIfMoviesNeedToBeRefreshed();
             }
         }
     }
@@ -169,14 +163,10 @@ public class MovieFragment extends Fragment  implements LoaderManager.LoaderCall
                     {
                         NetworkInfo networkInfo = (NetworkInfo) extras.get(key);
                         Log.d(LOG_TAG, "" + networkInfo.getState());
+                        Log.d(LOG_TAG,"listView -> "+movieListView);
                         if (networkInfo.getState() == NetworkInfo.State.CONNECTED)
                         {
-                            if (movieListView == null)
-                            {
-                                movieListView = (GridView) getActivity().findViewById(R.id.list);
-                            }
-                            setEmptyListView(EMPTY_TEXT);
-                            loadMovies();
+                            checkIfMoviesNeedToBeRefreshed();
                         }
                     }
                 }
@@ -275,5 +265,17 @@ public class MovieFragment extends Fragment  implements LoaderManager.LoaderCall
     {
         getLoaderManager().initLoader(1, null, getMovieObj()).forceLoad();
         spinner.setVisibility(View.VISIBLE);
+    }
+
+    private void checkIfMoviesNeedToBeRefreshed()
+    {
+        if(movieListView == null || (movieListView.getEmptyView() != null && !((TextView) movieListView.getEmptyView()).getText().toString().equalsIgnoreCase(EMPTY_TEXT)))
+        {
+            if (movieListView == null) {
+                movieListView = (GridView) getActivity().findViewById(R.id.list);
+            }
+            setEmptyListView(EMPTY_TEXT);
+            loadMovies();
+        }
     }
 }
