@@ -19,7 +19,6 @@ public class MovieAdapter extends ArrayAdapter
 {
     String BASE_PICASSO_URL = "http://image.tmdb.org/t/p/";
     String IMAGE_SIZE = "w185/";
-    String LOG_TAG = MovieAdapter.class.getName();
 
     public MovieAdapter(Context context, ArrayList<Movie> movies) {
         super(context, 0, movies);
