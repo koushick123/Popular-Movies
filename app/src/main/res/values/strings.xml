@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">Popular Movies</string>
+    <string name="emptyData">""</string>
+    <string name="noIntConn">No Internet Connection</string>
+    <string name="noDataFound">No Data Found</string>
+    <string name="networkInfo">networkInfo</string>
 </resources>
