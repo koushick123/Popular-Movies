@@ -7,9 +7,11 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.Loader;
+import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -26,10 +28,10 @@ import java.util.List;
 /**
  * Created by Koushick on 01-09-2016.
  */
-public class MovieFragment extends Fragment  implements LoaderManager.LoaderCallbacks<List<Movie>>
+public class MovieFragment extends Fragment implements LoaderManager.LoaderCallbacks<List<Movie>>
 {
-    private String MOVIE_DB_API_KEY = "9c8a44d30593675f02b346eee8f66839";
-    private String MOVIE_DB_BASE_URL = "http://api.themoviedb.org/3/movie/popular?api_key=";
+    private String MOVIE_DB_API_KEY = "?api_key=9c8a44d30593675f02b346eee8f66839";
+    private String MOVIE_DB_BASE_URL = "http://api.themoviedb.org/3/movie/";
     public static final String LOG_TAG = MovieFragment.class.getName();
     private GridView movieListView;
     private ConnectivityManager connectivityManager;
@@ -93,7 +95,14 @@ public class MovieFragment extends Fragment  implements LoaderManager.LoaderCall
     public Loader<List<Movie>> onCreateLoader(int id, Bundle args)
     {
         Log.d(LOG_TAG,"OnCreateLoader");
-        return new MovieLoader(getActivity().getApplicationContext(),MOVIE_DB_BASE_URL+MOVIE_DB_API_KEY);
+        SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
+        String sortOrder = sharedPrefs.getString(
+                getString(R.string.settings_order_by_key),
+                getString(R.string.settings_order_by_default));
+
+        String modifiedUrl = MOVIE_DB_BASE_URL+sortOrder+MOVIE_DB_API_KEY;
+
+        return new MovieLoader(getActivity().getApplicationContext(),modifiedUrl);
     }
 
     @Override
