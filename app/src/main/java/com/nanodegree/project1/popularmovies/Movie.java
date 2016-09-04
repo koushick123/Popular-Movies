@@ -2,7 +2,6 @@ package com.nanodegree.project1.popularmovies;
 
 import android.os.Parcel;
 import android.os.Parcelable;
-import android.widget.ImageView;
 
 /**
  * Created by Koushick on 30-08-2016.
@@ -99,7 +98,7 @@ public class Movie implements Parcelable{
         parcel.writeLong(id);
     }
 
-    public final Parcelable.Creator<Movie> CREATOR = new Parcelable.Creator<Movie>() {
+    public static final Parcelable.Creator<Movie> CREATOR = new Parcelable.Creator<Movie>() {
         @Override
         public Movie createFromParcel(Parcel parcel) {
             return new Movie(parcel);

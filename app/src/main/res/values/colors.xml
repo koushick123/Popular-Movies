@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="colorPrimary">#a61f33</color>
-    <color name="colorPrimaryDark">#681221</color>
+    <color name="colorPrimary">#282729</color>
+    <color name="colorPrimaryDark">#000000</color>
     <color name="colorAccent">#FF4081</color>
+    <color name="movieHeadingBackColor">#179779</color>
+    <color name="movieHeadingTextColor">#FFFFFF</color>
 </resources>

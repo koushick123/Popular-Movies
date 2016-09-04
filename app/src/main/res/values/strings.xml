@@ -4,6 +4,7 @@
     <string name="noIntConn">No Internet Connection</string>
     <string name="noDataFound">No Data Found</string>
     <string name="networkInfo">networkInfo</string>
+    <string name="movie_detail_label">Movie Details</string>
 
     <!-- Settings Menu Item [CHAR LIMIT=NONE] -->
     <string name="settings_menu_item">Settings</string>
@@ -16,7 +17,7 @@
     <string name="settings_order_by_key" translatable="false">most_popular</string>
     <string name="settings_order_by_default" translatable="false">@string/settings_order_by_popular_value</string>
 
-    !-- Label for order-by magnitude option [CHAR LIMIT=20] -->
+    <!-- Label for order-by magnitude option [CHAR LIMIT=20] -->
     <string name="settings_order_by_popular_label">Most Popular</string>
     <string name="settings_order_by_popular_value">popular</string>
 

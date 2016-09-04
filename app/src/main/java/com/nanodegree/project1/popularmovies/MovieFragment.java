@@ -69,7 +69,14 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
             {
                 updateMovies(movies);
             }
-            else if(checkIfInternetIsAvailable())
+            else
+            {
+                checkAndLoadMovies();
+            }
+        }
+        else
+        {
+            if(checkIfInternetIsAvailable())
             {
                 checkAndLoadMovies();
             }
@@ -199,8 +206,10 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
                 @Override
                 public void onItemClick(AdapterView<?> adapterView, View view, int position, long l)
                 {
-                    /*Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(((Movie) adapter.getItem(position)).getUrl()));
-                    startActivity(browserIntent);*/
+                    Log.d(LOG_TAG,"========Item clicked......");
+                    Intent movieDetailIntent = new Intent(getActivity().getApplicationContext(),MovieDetailActivity.class);
+                    movieDetailIntent.putExtra("movieDetail",allMovies.get(position));
+                    startActivity(movieDetailIntent);
                 }
             });
         }
