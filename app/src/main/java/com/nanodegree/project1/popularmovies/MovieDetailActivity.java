@@ -3,8 +3,6 @@ package com.nanodegree.project1.popularmovies;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
-import android.view.MenuItem;
-import android.widget.Toast;
 
 public class MovieDetailActivity extends AppCompatActivity {
 
@@ -25,12 +23,5 @@ public class MovieDetailActivity extends AppCompatActivity {
                     .add(R.id.fragmentDetail, movieDetailFragment, null)
                     .commit();
         }
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        int id = item.getItemId();
-        Toast.makeText(this,"Clicking back == "+id,Toast.LENGTH_LONG).show();
-        return super.onOptionsItemSelected(item);
     }
 }

@@ -8,6 +8,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.Loader;
 import android.content.SharedPreferences;
+import android.content.res.Configuration;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
@@ -19,8 +20,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.GridView;
+import android.widget.ImageView;
 import android.widget.ProgressBar;
-import android.widget.TextView;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -37,7 +38,7 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
     private ConnectivityManager connectivityManager;
     private NetworkInfo networkInfo;
     private ProgressBar spinner;
-    TextView placeHolderText;
+    ImageView placeHolderImage;
     private ArrayList<Movie> allMovies;
     private String EMPTY_TEXT = "", NO_INT_CONN = "No Internet Connection", NO_DATA_FOUND = "No Data Found";
 
@@ -48,7 +49,7 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
         Log.d(LOG_TAG,"onCreateView == "+savedInstanceState);
         View rootView = inflater.inflate(R.layout.fragment_movie,container,false);
         spinner = (ProgressBar)rootView.findViewById(R.id.spinner);
-        placeHolderText = (TextView)rootView.findViewById(R.id.placeholderText);
+        placeHolderImage = (ImageView)rootView.findViewById(R.id.placeHolderImage);
         movieListView = (GridView)rootView.findViewById(R.id.list);
         if(savedInstanceState == null)
         {
@@ -197,6 +198,15 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
         allMovies = movies;
         if(movies != null && movies.size() > 0)
         {
+            int orientation = getActivity().getApplicationContext().getResources().getConfiguration().orientation;
+            if(orientation == Configuration.ORIENTATION_LANDSCAPE)
+            {
+                movieListView.setNumColumns(3);
+            }
+            else if (orientation == Configuration.ORIENTATION_PORTRAIT)
+            {
+                movieListView.setNumColumns(2);
+            }
             setEmptyListView(EMPTY_TEXT);
             final MovieAdapter adapter = new MovieAdapter(getActivity().getApplicationContext(), allMovies);
             movieListView.setAdapter(adapter);
@@ -221,21 +231,23 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
 
     private void setEmptyListView(String msg)
     {
-        Log.d(LOG_TAG,placeHolderText+"");
+        Log.d(LOG_TAG,placeHolderImage+"");
         if(msg.equalsIgnoreCase(NO_DATA_FOUND))
         {
-            placeHolderText.setText(getResources().getString(R.string.noDataFound));
-            movieListView.setEmptyView(placeHolderText);
+            placeHolderImage.setVisibility(View.VISIBLE);
+            placeHolderImage.setImageResource(R.drawable.no_data);
+            movieListView.setEmptyView(placeHolderImage);
         }
         else if(msg.equalsIgnoreCase(EMPTY_TEXT))
         {
-            placeHolderText.setText(getResources().getString(R.string.emptyData));
-            movieListView.setEmptyView(placeHolderText);
+            placeHolderImage.setVisibility(View.INVISIBLE);
+            movieListView.setEmptyView(placeHolderImage);
         }
         else if(msg.equalsIgnoreCase(NO_INT_CONN))
         {
-            placeHolderText.setText(getResources().getString(R.string.noIntConn));
-            movieListView.setEmptyView(placeHolderText);
+            placeHolderImage.setVisibility(View.VISIBLE);
+            placeHolderImage.setImageResource(R.drawable.no_internet_connection_message);
+            movieListView.setEmptyView(placeHolderImage);
         }
         spinner.setVisibility(View.INVISIBLE);
     }
@@ -287,7 +299,7 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
 
     private void checkIfMoviesNeedToBeRefreshed()
     {
-        if(movieListView == null || (movieListView.getEmptyView() != null && !((TextView) movieListView.getEmptyView()).getText().toString().equalsIgnoreCase(EMPTY_TEXT)))
+        if(movieListView == null || (movieListView.getEmptyView() != null && (((ImageView) movieListView.getEmptyView()).getVisibility() == View.VISIBLE)))
         {
             if (movieListView == null) {
                 movieListView = (GridView) getActivity().findViewById(R.id.list);
@@ -296,4 +308,6 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
             loadMovies();
         }
     }
+
+
 }
