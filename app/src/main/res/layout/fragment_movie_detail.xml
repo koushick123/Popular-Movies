@@ -92,5 +92,30 @@
         android:layout_marginRight="16dp"
         android:layout_marginBottom="7dp"
         android:background="#444"></TableRow>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="16dp"
+        android:layout_marginBottom="6dp"
+        android:id="@+id/trailerHeading"
+        android:text="@string/trailerHeading"
+        />
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <ListView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/trailerList">
+        </ListView>
+
+        <ProgressBar
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/trailerSpinner"
+        />
+    </FrameLayout>
 </LinearLayout>
 </ScrollView>

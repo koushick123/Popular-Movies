@@ -14,6 +14,10 @@ public class Movie implements Parcelable{
     double userRating;
     String releaseDate;
     long id;
+    String[] key;
+    String[] trailerName;
+    String[] authors;
+    String[] contents;
 
     public Movie(String originalTitle, String poster_path, String synopsis, double userRating, String releaseDate, long id) {
         this.originalTitle = originalTitle;
@@ -80,6 +84,38 @@ public class Movie implements Parcelable{
 
     public void setReleaseDate(String releaseDate) {
         this.releaseDate = releaseDate;
+    }
+
+    public String[] getKey() {
+        return key;
+    }
+
+    public void setKey(String[] key) {
+        this.key = key;
+    }
+
+    public String[] getTrailerName() {
+        return trailerName;
+    }
+
+    public void setTrailerName(String[] trailerName) {
+        this.trailerName = trailerName;
+    }
+
+    public String[] getAuthors() {
+        return authors;
+    }
+
+    public void setAuthors(String[] authors) {
+        this.authors = authors;
+    }
+
+    public String[] getContents() {
+        return contents;
+    }
+
+    public void setContents(String[] contents) {
+        this.contents = contents;
     }
 
     @Override

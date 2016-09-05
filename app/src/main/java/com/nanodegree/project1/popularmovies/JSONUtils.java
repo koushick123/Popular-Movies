@@ -36,4 +36,48 @@ public class JSONUtils {
         }
         return  movies;
     }
+
+    public static Movie extractMovieTrailerDetails(String movie_response, Movie movie)
+    {
+        ArrayList<String> keys = new ArrayList<String>();
+        ArrayList<String> trailers = new ArrayList<String>();
+        try {
+            JSONObject rootObj = new JSONObject(movie_response);
+            JSONArray results = rootObj.optJSONArray("results");
+            Log.d(LOG_TAG,"Results for trailer and video == "+results.length());
+            for(int i=0;i<results.length();i++)
+            {
+                JSONObject resultObj = results.getJSONObject(i);
+                keys.add(resultObj.getString("key"));
+                trailers.add(resultObj.getString("name"));
+            }
+        } catch (JSONException e) {
+            Log.e("JSONUtils", "Problem parsing the movie JSON results", e);
+        }
+        movie.setKey(keys.toArray(new String[keys.size()]));
+        movie.setTrailerName(trailers.toArray(new String[trailers.size()]));
+        return  movie;
+    }
+
+    public static Movie extractMovieReviewDetails(String movie_response, Movie movie)
+    {
+        ArrayList<String> authors = new ArrayList<String>();
+        ArrayList<String> contents = new ArrayList<String>();
+        try {
+            JSONObject rootObj = new JSONObject(movie_response);
+            JSONArray results = rootObj.optJSONArray("results");
+            Log.d(LOG_TAG,"Results for trailer and video == "+results.length());
+            for(int i=0;i<results.length();i++)
+            {
+                JSONObject resultObj = results.getJSONObject(i);
+                authors.add(resultObj.getString("author"));
+                contents.add(resultObj.getString("content"));
+            }
+        } catch (JSONException e) {
+            Log.e("JSONUtils", "Problem parsing the movie JSON results", e);
+        }
+        movie.setAuthors(authors.toArray(new String[authors.size()]));
+        movie.setContents(contents.toArray(new String[contents.size()]));
+        return  movie;
+    }
 }

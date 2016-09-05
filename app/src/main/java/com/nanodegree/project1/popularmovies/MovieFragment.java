@@ -31,8 +31,6 @@ import java.util.List;
  */
 public class MovieFragment extends Fragment implements LoaderManager.LoaderCallbacks<List<Movie>>
 {
-    private String MOVIE_DB_API_KEY = "?api_key=9c8a44d30593675f02b346eee8f66839";
-    private String MOVIE_DB_BASE_URL = "http://api.themoviedb.org/3/movie/";
     public static final String LOG_TAG = MovieFragment.class.getName();
     private GridView movieListView;
     private ConnectivityManager connectivityManager;
@@ -40,7 +38,6 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
     private ProgressBar spinner;
     ImageView placeHolderImage;
     private ArrayList<Movie> allMovies;
-    private String EMPTY_TEXT = "", NO_INT_CONN = "No Internet Connection", NO_DATA_FOUND = "No Data Found";
 
     @Nullable
     @Override
@@ -53,7 +50,7 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
         movieListView = (GridView)rootView.findViewById(R.id.list);
         if(savedInstanceState == null)
         {
-            checkAndLoadMovies();
+            //checkAndLoadMovies();
         }
         return rootView;
     }
@@ -83,7 +80,7 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
             }
             else
             {
-                setEmptyListView(NO_INT_CONN);
+                setEmptyListView(MovieConstants.NO_INT_CONN);
             }
         }
     }
@@ -108,7 +105,7 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
                 getString(R.string.settings_order_by_key),
                 getString(R.string.settings_order_by_default));
 
-        String modifiedUrl = MOVIE_DB_BASE_URL+sortOrder+MOVIE_DB_API_KEY;
+        String modifiedUrl = MovieConstants.MOVIE_DB_BASE_URL+sortOrder+MovieConstants.MOVIE_DB_API_KEY;
 
         return new MovieLoader(getActivity().getApplicationContext(),modifiedUrl);
     }
@@ -207,7 +204,7 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
             {
                 movieListView.setNumColumns(2);
             }
-            setEmptyListView(EMPTY_TEXT);
+            setEmptyListView(MovieConstants.EMPTY_TEXT);
             final MovieAdapter adapter = new MovieAdapter(getActivity().getApplicationContext(), allMovies);
             movieListView.setAdapter(adapter);
 
@@ -225,25 +222,24 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
         }
         else if(movies == null || movies.size() == 0)
         {
-            setEmptyListView(NO_DATA_FOUND);
+            setEmptyListView(MovieConstants.NO_DATA_FOUND);
         }
     }
 
     private void setEmptyListView(String msg)
     {
-        Log.d(LOG_TAG,placeHolderImage+"");
-        if(msg.equalsIgnoreCase(NO_DATA_FOUND))
+        if(msg.equalsIgnoreCase(MovieConstants.NO_DATA_FOUND))
         {
             placeHolderImage.setVisibility(View.VISIBLE);
             placeHolderImage.setImageResource(R.drawable.no_data);
             movieListView.setEmptyView(placeHolderImage);
         }
-        else if(msg.equalsIgnoreCase(EMPTY_TEXT))
+        else if(msg.equalsIgnoreCase(MovieConstants.EMPTY_TEXT))
         {
             placeHolderImage.setVisibility(View.INVISIBLE);
             movieListView.setEmptyView(placeHolderImage);
         }
-        else if(msg.equalsIgnoreCase(NO_INT_CONN))
+        else if(msg.equalsIgnoreCase(MovieConstants.NO_INT_CONN))
         {
             placeHolderImage.setVisibility(View.VISIBLE);
             placeHolderImage.setImageResource(R.drawable.no_internet_connection_message);
@@ -287,7 +283,7 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
         }
         else
         {
-            setEmptyListView(NO_INT_CONN);
+            setEmptyListView(MovieConstants.NO_INT_CONN);
         }
     }
 
@@ -301,10 +297,11 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
     {
         if(movieListView == null || (movieListView.getEmptyView() != null && (((ImageView) movieListView.getEmptyView()).getVisibility() == View.VISIBLE)))
         {
+            Log.d(LOG_TAG,"Empty view === "+movieListView.getEmptyView());
             if (movieListView == null) {
                 movieListView = (GridView) getActivity().findViewById(R.id.list);
             }
-            setEmptyListView(EMPTY_TEXT);
+            setEmptyListView(MovieConstants.EMPTY_TEXT);
             loadMovies();
         }
     }
