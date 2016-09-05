@@ -111,9 +111,16 @@
             android:id="@+id/trailerList">
         </ListView>
 
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/trailerPlaceHolderImage"
+            />
+
         <ProgressBar
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_gravity="center"
             android:id="@+id/trailerSpinner"
         />
     </FrameLayout>

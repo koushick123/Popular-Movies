@@ -12,13 +12,14 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.squareup.picasso.Picasso;
+
+import java.util.ArrayList;
 
 public class MovieDetailFragment extends Fragment implements LoaderManager.LoaderCallbacks<Movie>
 {
@@ -48,6 +49,7 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
         movieSynopsis = (TextView)rootView.findViewById(R.id.movieSynopsis);
         spinner = (ProgressBar)rootView.findViewById(R.id.trailerSpinner);
         trailerList = (ListView)rootView.findViewById(R.id.trailerList);
+        placeHolderImage = (ImageView)rootView.findViewById(R.id.trailerPlaceHolderImage);
         if(savedInstanceState == null)
         {
             movieBundle = getArguments();
@@ -112,6 +114,7 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
         Log.d(LOG_TAG,"==== onActivityCreated ===="+savedInstanceState);
         Log.d(LOG_TAG,"==== onActivityCreated ==== movieBundle === "+movieBundle);
         displayMovieDetails(movieBundle);
+
     }
 
     private void setEmptyListView(String msg)
@@ -149,7 +152,18 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
     {
         if(movie != null)
         {
-            ArrayAdapter<String> trailers = new ArrayAdapter<String>();
+            ArrayList trailerNames = new ArrayList();
+            for(int i=0;i<movie.getTrailerName().length;i++)
+            {
+                trailerNames.add(movie.getTrailerName()[i]);
+            }
+            MovieTrailerAdapter movieTrailerAdapter = new MovieTrailerAdapter(getActivity().getApplicationContext(),trailerNames);
+            trailerList.setAdapter(movieTrailerAdapter);
+            setEmptyListView(MovieConstants.EMPTY_TEXT);
+        }
+        else
+        {
+            setEmptyListView(MovieConstants.NO_DATA_FOUND);
         }
     }
 

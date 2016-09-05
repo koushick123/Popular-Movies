@@ -3,7 +3,6 @@ package com.nanodegree.project1.popularmovies;
 import android.content.Context;
 import android.content.res.Configuration;
 import android.support.annotation.NonNull;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -41,7 +40,6 @@ public class MovieAdapter extends ArrayAdapter
         Movie movie = (Movie)getItem(position);
         ImageView moviePoster = (ImageView)listItem.findViewById(R.id.moviePoster);
         GridView movieGrid = (GridView)parent.findViewById(R.id.list);
-        Log.d(LOG_TAG,"Orientation == "+getContext().getResources().getConfiguration().orientation);
         int orientation = getContext().getResources().getConfiguration().orientation;
         if(orientation == Configuration.ORIENTATION_LANDSCAPE)
         {

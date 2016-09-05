@@ -5,7 +5,7 @@
     <string name="noDataFound">No Data Found</string>
     <string name="networkInfo">networkInfo</string>
     <string name="movie_detail_label">Movie Details</string>
-    <string name="trailerHeading">Trailers</string>
+    <string name="trailerHeading">Trailers:</string>
 
     <!-- Settings Menu Item [CHAR LIMIT=NONE] -->
     <string name="settings_menu_item">Settings</string>
