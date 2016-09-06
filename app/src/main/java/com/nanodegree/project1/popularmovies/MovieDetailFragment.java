@@ -54,7 +54,7 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
         if(savedInstanceState == null)
         {
             movieBundle = getArguments();
-            loadMovies();
+            checkAndLoadMovies();
             Log.d(LOG_TAG,movieBundle+"  oncreateview");
         }
         else
