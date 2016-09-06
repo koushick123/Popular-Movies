@@ -9,17 +9,17 @@ import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
-import android.widget.ListView;
+import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.squareup.picasso.Picasso;
-
-import java.util.ArrayList;
 
 public class MovieDetailFragment extends Fragment implements LoaderManager.LoaderCallbacks<Movie>
 {
@@ -33,8 +33,9 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
     private ConnectivityManager connectivityManager;
     private NetworkInfo networkInfo;
     private ProgressBar spinner;
-    ListView trailerList;
+    LinearLayout trailerList;
     ImageView placeHolderImage;
+    Movie savedMovie;
 
     @Nullable
     @Override
@@ -48,7 +49,7 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
         movieUserRating = (TextView)rootView.findViewById(R.id.movieUserRating);
         movieSynopsis = (TextView)rootView.findViewById(R.id.movieSynopsis);
         spinner = (ProgressBar)rootView.findViewById(R.id.trailerSpinner);
-        trailerList = (ListView)rootView.findViewById(R.id.trailerList);
+        trailerList = (LinearLayout)rootView.findViewById(R.id.trailerList);
         placeHolderImage = (ImageView)rootView.findViewById(R.id.trailerPlaceHolderImage);
         if(savedInstanceState == null)
         {
@@ -59,6 +60,7 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
         else
         {
             movieBundle = savedInstanceState.getParcelable("movieInfo");
+            savedMovie = savedInstanceState.getParcelable("movieTrailer");
         }
         return rootView;
     }
@@ -70,6 +72,10 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
         if(movieBundle != null)
         {
             outState.putParcelable("movieInfo",movieBundle);
+        }
+        if(savedMovie != null)
+        {
+            outState.putParcelable("movieTrailer",savedMovie);
         }
         super.onSaveInstanceState(outState);
     }
@@ -114,7 +120,10 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
         Log.d(LOG_TAG,"==== onActivityCreated ===="+savedInstanceState);
         Log.d(LOG_TAG,"==== onActivityCreated ==== movieBundle === "+movieBundle);
         displayMovieDetails(movieBundle);
-
+        if(savedMovie != null)
+        {
+            displayMovieTrailerAndReviewDetails(savedMovie);
+        }
     }
 
     private void setEmptyListView(String msg)
@@ -123,18 +132,21 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
         {
             placeHolderImage.setVisibility(View.VISIBLE);
             placeHolderImage.setImageResource(R.drawable.no_data);
-            trailerList.setEmptyView(placeHolderImage);
+            //trailerList.setEmptyView(placeHolderImage);
+            trailerList.setVisibility(View.INVISIBLE);
         }
         else if(msg.equalsIgnoreCase(MovieConstants.EMPTY_TEXT))
         {
             placeHolderImage.setVisibility(View.INVISIBLE);
-            trailerList.setEmptyView(placeHolderImage);
+            //trailerList.setEmptyView(placeHolderImage);
+            trailerList.setVisibility(View.VISIBLE);
         }
         else if(msg.equalsIgnoreCase(MovieConstants.NO_INT_CONN))
         {
             placeHolderImage.setVisibility(View.VISIBLE);
             placeHolderImage.setImageResource(R.drawable.no_internet_connection_message);
-            trailerList.setEmptyView(placeHolderImage);
+            //trailerList.setEmptyView(placeHolderImage);
+            trailerList.setVisibility(View.INVISIBLE);
         }
         spinner.setVisibility(View.INVISIBLE);
     }
@@ -148,17 +160,45 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
         movieSynopsis.setText(((Movie)movie.getParcelable("movieDetail")).getSynopsis());
     }
 
-    private void displayMovieTrailerAndReviewDetails(Movie movie)
+    private void displayMovieTrailerAndReviewDetails(final Movie movieTrailerAndReview)
     {
-        if(movie != null)
+        if(movieTrailerAndReview != null)
         {
-            ArrayList trailerNames = new ArrayList();
-            for(int i=0;i<movie.getTrailerName().length;i++)
+            for(int i=0;i<movieTrailerAndReview.getTrailerName().length;i++)
             {
-                trailerNames.add(movie.getTrailerName()[i]);
+                //Create Linearlayout
+                LinearLayout linearLayout = new LinearLayout(getActivity());
+                linearLayout.setId(i + 1);
+                linearLayout.setOrientation(LinearLayout.HORIZONTAL);
+                LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,ViewGroup.LayoutParams.WRAP_CONTENT);
+                linearLayout.setLayoutParams(params);
+
+                final String key = movieTrailerAndReview.getKey()[i];
+                //Add media player image view
+                ImageView trailerPlayer = new ImageView(getActivity());
+                //params.setMargins(16,10,0,20);
+                trailerPlayer.setImageResource(R.drawable.ic_play_arrow_black_24dp);
+                linearLayout.addView(trailerPlayer);
+                trailerPlayer.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        Toast.makeText(getActivity(),key,Toast.LENGTH_LONG).show();
+                    }
+                });
+                //trailerPlayer.setLayoutParams(params);
+                //Create a textview
+                TextView textView = new TextView(getActivity());
+                textView.setTextSize(16F);
+                textView.setText(movieTrailerAndReview.getTrailerName()[i]);
+                //params.setMargins(16,6,0,10);
+                //textView.setLayoutParams(params);
+                textView.setGravity(Gravity.CENTER_VERTICAL);
+                linearLayout.addView(textView);
+                trailerList.addView(linearLayout);
             }
-            MovieTrailerAdapter movieTrailerAdapter = new MovieTrailerAdapter(getActivity().getApplicationContext(),trailerNames);
-            trailerList.setAdapter(movieTrailerAdapter);
+            savedMovie = movieTrailerAndReview;
+            //MovieTrailerAdapter movieTrailerAdapter = new MovieTrailerAdapter(getActivity().getApplicationContext(),trailerNames);
+            //trailerList.setAdapter(movieTrailerAdapter);
             setEmptyListView(MovieConstants.EMPTY_TEXT);
         }
         else

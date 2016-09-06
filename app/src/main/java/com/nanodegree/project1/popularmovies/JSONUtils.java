@@ -66,7 +66,7 @@ public class JSONUtils {
         try {
             JSONObject rootObj = new JSONObject(movie_response);
             JSONArray results = rootObj.optJSONArray("results");
-            Log.d(LOG_TAG,"Results for trailer and video == "+results.length());
+            Log.d(LOG_TAG,"Results for review == "+results.length());
             for(int i=0;i<results.length();i++)
             {
                 JSONObject resultObj = results.getJSONObject(i);

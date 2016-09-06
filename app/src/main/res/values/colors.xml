@@ -5,4 +5,5 @@
     <color name="colorAccent">#FF4081</color>
     <color name="movieHeadingBackColor">#179779</color>
     <color name="movieHeadingTextColor">#FFFFFF</color>
+    <color name="listDividerColor">#bcb4b4</color>
 </resources>

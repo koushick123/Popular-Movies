@@ -78,7 +78,10 @@ public class MovieTrailerAndReviewLoader extends AsyncTaskLoader<Movie> {
             {
                 httpURLConnection.disconnect();
                 try {
-                    inputStream.close();
+                    if(inputStream != null)
+                    {
+                        inputStream.close();
+                    }
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
