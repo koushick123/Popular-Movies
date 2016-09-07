@@ -24,4 +24,6 @@
 
     <string name="settings_order_by_top_rated_label">Top Rated</string>
     <string name="settings_order_by_top_rated_value">top_rated</string>
+
+    <string name="reviewHeading">Reviews:</string>
 </resources>

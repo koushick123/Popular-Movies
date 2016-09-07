@@ -6,4 +6,5 @@
     <color name="movieHeadingBackColor">#179779</color>
     <color name="movieHeadingTextColor">#FFFFFF</color>
     <color name="listDividerColor">#bcb4b4</color>
+    <color name="mainDividerColor">#FF444444</color>
 </resources>

@@ -2,10 +2,15 @@ package com.nanodegree.project1.popularmovies;
 
 import android.app.Fragment;
 import android.app.LoaderManager;
+import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.Loader;
+import android.graphics.Typeface;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.util.Log;
@@ -16,8 +21,8 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
+import android.widget.TableRow;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.squareup.picasso.Picasso;
 
@@ -33,8 +38,9 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
     private ConnectivityManager connectivityManager;
     private NetworkInfo networkInfo;
     private ProgressBar spinner;
-    LinearLayout trailerList;
+    LinearLayout trailerAndReviewList;
     ImageView placeHolderImage;
+    TextView trailerHeading;
     Movie savedMovie;
 
     @Nullable
@@ -49,8 +55,9 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
         movieUserRating = (TextView)rootView.findViewById(R.id.movieUserRating);
         movieSynopsis = (TextView)rootView.findViewById(R.id.movieSynopsis);
         spinner = (ProgressBar)rootView.findViewById(R.id.trailerSpinner);
-        trailerList = (LinearLayout)rootView.findViewById(R.id.trailerList);
+        trailerAndReviewList = (LinearLayout)rootView.findViewById(R.id.trailerAndReviewList);
         placeHolderImage = (ImageView)rootView.findViewById(R.id.trailerPlaceHolderImage);
+        trailerHeading = (TextView)rootView.findViewById(R.id.trailerHeading);
         if(savedInstanceState == null)
         {
             movieBundle = getArguments();
@@ -63,6 +70,78 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
             savedMovie = savedInstanceState.getParcelable("movieTrailer");
         }
         return rootView;
+    }
+
+    @Override
+    public void onStop()
+    {
+        Log.d(LOG_TAG,"OnStop");
+        super.onStop();
+        deRegisterConnectionReceiver();
+    }
+
+    @Override
+    public void onStart()
+    {
+        Log.d(LOG_TAG,"OnStart");
+        super.onStart();
+        getActivity().registerReceiver(getBroadcastReceiver(),new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        Log.d(LOG_TAG,"onResume ==>"+savedMovie);
+        if(savedMovie == null)
+        {
+            if(checkIfInternetIsAvailable())
+            {
+                checkIfMoviesNeedToBeRefreshed();
+            }
+        }
+    }
+
+    BroadcastReceiver broadcastReceiver = new BroadcastReceiver()
+    {
+        @Override
+        public void onReceive(Context context, Intent intent)
+        {
+            Bundle extras = intent.getExtras();
+            if (extras != null) {
+                for (String key : extras.keySet()) {
+                    if (key.equalsIgnoreCase(getResources().getString(R.string.networkInfo)))
+                    {
+                        NetworkInfo networkInfo = (NetworkInfo) extras.get(key);
+                        Log.d(LOG_TAG, "" + networkInfo.getState());
+                        Log.d(LOG_TAG,"listView -> "+trailerAndReviewList);
+                        if (networkInfo.getState() == NetworkInfo.State.CONNECTED)
+                        {
+                            checkIfMoviesNeedToBeRefreshed();
+                        }
+                    }
+                }
+            }
+        }
+    };
+
+    private BroadcastReceiver getBroadcastReceiver()
+    {
+        return getMovieObj().broadcastReceiver;
+    }
+
+    private void deRegisterConnectionReceiver()
+    {
+        if(getBroadcastReceiver() != null)
+        {
+            try {
+                getActivity().unregisterReceiver(getBroadcastReceiver());
+                getMovieObj().broadcastReceiver = null;
+            }
+            catch (IllegalArgumentException illegal)
+            {
+                Log.e(LOG_TAG,illegal.getMessage());
+            }
+        }
     }
 
     @Override
@@ -122,7 +201,23 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
         displayMovieDetails(movieBundle);
         if(savedMovie != null)
         {
+            if(trailerHeading.getVisibility() == View.INVISIBLE)
+            {
+                trailerHeading.setVisibility(View.VISIBLE);
+            }
             displayMovieTrailerAndReviewDetails(savedMovie);
+        }
+        else
+        {
+            if(checkIfInternetIsAvailable())
+            {
+                loadMovies();
+            }
+            else
+            {
+                trailerHeading.setVisibility(View.INVISIBLE);
+                setEmptyListView(MovieConstants.NO_INT_CONN);
+            }
         }
     }
 
@@ -132,21 +227,18 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
         {
             placeHolderImage.setVisibility(View.VISIBLE);
             placeHolderImage.setImageResource(R.drawable.no_data);
-            //trailerList.setEmptyView(placeHolderImage);
-            trailerList.setVisibility(View.INVISIBLE);
+            trailerAndReviewList.setVisibility(View.INVISIBLE);
         }
         else if(msg.equalsIgnoreCase(MovieConstants.EMPTY_TEXT))
         {
             placeHolderImage.setVisibility(View.INVISIBLE);
-            //trailerList.setEmptyView(placeHolderImage);
-            trailerList.setVisibility(View.VISIBLE);
+            trailerAndReviewList.setVisibility(View.VISIBLE);
         }
         else if(msg.equalsIgnoreCase(MovieConstants.NO_INT_CONN))
         {
             placeHolderImage.setVisibility(View.VISIBLE);
             placeHolderImage.setImageResource(R.drawable.no_internet_connection_message);
-            //trailerList.setEmptyView(placeHolderImage);
-            trailerList.setVisibility(View.INVISIBLE);
+            trailerAndReviewList.setVisibility(View.INVISIBLE);
         }
         spinner.setVisibility(View.INVISIBLE);
     }
@@ -168,37 +260,123 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
             {
                 //Create Linearlayout
                 LinearLayout linearLayout = new LinearLayout(getActivity());
-                linearLayout.setId(i + 1);
                 linearLayout.setOrientation(LinearLayout.HORIZONTAL);
                 LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,ViewGroup.LayoutParams.WRAP_CONTENT);
                 linearLayout.setLayoutParams(params);
 
                 final String key = movieTrailerAndReview.getKey()[i];
+
                 //Add media player image view
                 ImageView trailerPlayer = new ImageView(getActivity());
-                //params.setMargins(16,10,0,20);
+                params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT,ViewGroup.LayoutParams.WRAP_CONTENT);
+                params.setMargins(38,10,20,20);
                 trailerPlayer.setImageResource(R.drawable.ic_play_arrow_black_24dp);
+                trailerPlayer.setLayoutParams(params);
                 linearLayout.addView(trailerPlayer);
                 trailerPlayer.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
-                        Toast.makeText(getActivity(),key,Toast.LENGTH_LONG).show();
+                        Intent youtubeIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://www.youtube.com/watch?v="+key));
+                        startActivity(youtubeIntent);
                     }
                 });
-                //trailerPlayer.setLayoutParams(params);
-                //Create a textview
+
+                //Create a Trailer Info
                 TextView textView = new TextView(getActivity());
-                textView.setTextSize(16F);
+                textView.setTextSize(getResources().getDimension(R.dimen.trailerAndReviewTextSize));
                 textView.setText(movieTrailerAndReview.getTrailerName()[i]);
-                //params.setMargins(16,6,0,10);
-                //textView.setLayoutParams(params);
+                params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT,ViewGroup.LayoutParams.WRAP_CONTENT);
+                params.setMargins(26,26,0,10);
+                textView.setLayoutParams(params);
                 textView.setGravity(Gravity.CENTER_VERTICAL);
                 linearLayout.addView(textView);
-                trailerList.addView(linearLayout);
+
+                trailerAndReviewList.addView(linearLayout);
+
+                //Add line separator
+                TableRow separator = new TableRow(getActivity());
+                params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,1);
+                params.setMargins(16,0,16,7);
+                separator.setBackgroundColor(getResources().getColor(R.color.listDividerColor));
+                separator.setLayoutParams(params);
+
+                LinearLayout separatorLinearLayout = new LinearLayout(getActivity());
+                separatorLinearLayout.setId(new Integer(100));
+                separatorLinearLayout.setOrientation(LinearLayout.HORIZONTAL);
+                params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,ViewGroup.LayoutParams.WRAP_CONTENT);
+                separatorLinearLayout.setLayoutParams(params);
+                separatorLinearLayout.addView(separator);
+
+                if(i < movieTrailerAndReview.getTrailerName().length-1)
+                {
+                    trailerAndReviewList.addView(separatorLinearLayout);
+                }
+            }
+
+            //Add line separator
+            TableRow separator = new TableRow(getActivity());
+            LinearLayout.LayoutParams sepparams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,2);
+            sepparams.setMargins(32,0,32,7);
+            separator.setBackgroundColor(getResources().getColor(android.R.color.black));
+            separator.setLayoutParams(sepparams);
+            trailerAndReviewList.addView(separator);
+
+            for(int i=0;i<movieTrailerAndReview.getAuthors().length;i++)
+            {
+                //Create Linearlayout
+                LinearLayout reviewLinearLayout = new LinearLayout(getActivity());
+                reviewLinearLayout.setOrientation(LinearLayout.VERTICAL);
+                LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,ViewGroup.LayoutParams.WRAP_CONTENT);
+                reviewLinearLayout.setLayoutParams(params);
+
+                //Create Review heading
+                TextView reviewText = new TextView(getActivity());
+                params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT,ViewGroup.LayoutParams.WRAP_CONTENT);
+                params.setMargins(26,7,0,6);
+                reviewText.setLayoutParams(params);
+                reviewText.setText(getResources().getString(R.string.reviewHeading));
+                reviewText.setTextSize(getResources().getDimension(R.dimen.trailerAndReviewHeadingTextSize));
+                if(i == 0)
+                {
+                    reviewLinearLayout.addView(reviewText);
+                }
+
+                //Create Review info
+                TextView author = new TextView(getActivity());
+                params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT,ViewGroup.LayoutParams.WRAP_CONTENT);
+                params.setMargins(38,10,20,20);
+                author.setLayoutParams(params);
+                author.setText(movieTrailerAndReview.getAuthors()[i]);
+                author.setTypeface(null,Typeface.BOLD);
+                reviewLinearLayout.addView(author);
+
+                //Create Review content
+                TextView content = new TextView(getActivity());
+                params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT,ViewGroup.LayoutParams.WRAP_CONTENT);
+                params.setMargins(38,10,20,20);
+                content.setLayoutParams(params);
+                content.setText(movieTrailerAndReview.getContents()[i]);
+                reviewLinearLayout.addView(content);
+
+                trailerAndReviewList.addView(reviewLinearLayout);
+
+                //Add line separator
+                TableRow reviewSeparator = new TableRow(getActivity());
+                params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,1);
+                params.setMargins(16,0,16,7);
+                reviewSeparator.setBackgroundColor(getResources().getColor(R.color.listDividerColor));
+                reviewSeparator.setLayoutParams(params);
+
+                LinearLayout separatorLinearLayout = new LinearLayout(getActivity());
+                separatorLinearLayout.setId(new Integer(100));
+                separatorLinearLayout.setOrientation(LinearLayout.HORIZONTAL);
+                params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,ViewGroup.LayoutParams.WRAP_CONTENT);
+                separatorLinearLayout.setLayoutParams(params);
+                separatorLinearLayout.addView(reviewSeparator);
+
+                trailerAndReviewList.addView(separatorLinearLayout);
             }
             savedMovie = movieTrailerAndReview;
-            //MovieTrailerAdapter movieTrailerAdapter = new MovieTrailerAdapter(getActivity().getApplicationContext(),trailerNames);
-            //trailerList.setAdapter(movieTrailerAdapter);
             setEmptyListView(MovieConstants.EMPTY_TEXT);
         }
         else
@@ -230,5 +408,18 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
     {
         getLoaderManager().initLoader(1, null, getMovieObj()).forceLoad();
         spinner.setVisibility(View.VISIBLE);
+    }
+
+    private void checkIfMoviesNeedToBeRefreshed()
+    {
+        if(trailerAndReviewList == null || trailerAndReviewList.getVisibility() == View.INVISIBLE)
+        {
+            Log.d(LOG_TAG,"Empty view === "+trailerAndReviewList);
+            if (trailerAndReviewList == null) {
+                trailerAndReviewList = (LinearLayout) getActivity().findViewById(R.id.trailerAndReviewList);
+            }
+            setEmptyListView(MovieConstants.EMPTY_TEXT);
+            loadMovies();
+        }
     }
 }

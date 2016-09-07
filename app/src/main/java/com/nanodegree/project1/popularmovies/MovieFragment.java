@@ -305,6 +305,4 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
             loadMovies();
         }
     }
-
-
 }
