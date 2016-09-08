@@ -20,10 +20,10 @@
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:paddingBottom="30dp"
-        android:paddingTop="30dp"
-        android:paddingLeft="16dp"
-        android:paddingRight="16dp"
+        android:paddingBottom="@dimen/movieHeadingPadBottom"
+        android:paddingTop="@dimen/movieHeadingPadUp"
+        android:paddingLeft="@dimen/movieHeadingPadLeft"
+        android:paddingRight="@dimen/movieHeadingPadRight"
         android:id="@+id/movieHeading"
         android:background="@color/movieHeadingBackColor"
         android:textColor="@color/movieHeadingTextColor"
@@ -41,8 +41,8 @@
         android:layout_width="@dimen/movieThumbnailWidth"
         android:layout_height="@dimen/movieThumbnailHeight"
         android:id="@+id/movieThumbnail"
-        android:layout_marginLeft="26dp"
-        android:layout_marginTop="10dp"
+        android:layout_marginLeft="@dimen/movieDetailMarginLeft"
+        android:layout_marginTop="@dimen/movieDetailMarginTop"
         />
 
         <LinearLayout
@@ -54,17 +54,17 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:id="@+id/movieReleaseDate"
-                android:layout_marginTop="10dp"
-                android:layout_marginLeft="36dp"
-                android:textSize="22sp"
+                android:layout_marginTop="@dimen/movieDetailMarginTop"
+                android:layout_marginLeft="@dimen/movieDetailDatesMarginLeft"
+                android:textSize="@dimen/movieRelDateTextSize"
                 />
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:id="@+id/movieUserRating"
-                android:layout_marginTop="10dp"
-                android:layout_marginLeft="36dp"
-                android:textSize="10sp"
+                android:layout_marginTop="@dimen/movieDetailMarginTop"
+                android:layout_marginLeft="@dimen/movieDetailDatesMarginLeft"
+                android:textSize="@dimen/movieRatingTextSize"
                 />
 
             </LinearLayout>
@@ -79,29 +79,29 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:id="@+id/movieSynopsis"
-            android:layout_marginLeft="16dp"
-            android:layout_marginRight="16dp"
-            android:layout_marginTop="10dp"
-            android:layout_marginBottom="7dp"
+            android:layout_marginLeft="@dimen/movieHeadingPadLeft"
+            android:layout_marginRight="@dimen/movieHeadingPadRight"
+            android:layout_marginTop="@dimen/movieDetailMarginTop"
+            android:layout_marginBottom="@dimen/movieSynopsisMarginBottom"
             />
     </LinearLayout>
     <TableRow
         android:id="@+id/hr"
         android:layout_width="match_parent"
         android:layout_height="1dp"
-        android:layout_marginLeft="16dp"
-        android:layout_marginRight="16dp"
-        android:layout_marginBottom="7dp"
+        android:layout_marginLeft="@dimen/movieHeadingPadLeft"
+        android:layout_marginRight="@dimen/movieHeadingPadRight"
+        android:layout_marginBottom="@dimen/movieSynopsisMarginBottom"
         android:background="@color/mainDividerColor"></TableRow>
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="16dp"
-        android:layout_marginTop="7dp"
-        android:layout_marginBottom="6dp"
+        android:layout_marginLeft="@dimen/movieHeadingPadLeft"
+        android:layout_marginTop="@dimen/trailerHeadMarginTop"
+        android:layout_marginBottom="@dimen/trailerHeadMarginBottom"
         android:id="@+id/trailerHeading"
-        android:textSize="20sp"
+        android:textSize="@dimen/trailerTextSize"
         android:text="@string/trailerHeading"
         />
 

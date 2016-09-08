@@ -260,23 +260,27 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
             {
                 //Create Linearlayout
                 LinearLayout linearLayout = new LinearLayout(getActivity());
-                linearLayout.setOrientation(LinearLayout.HORIZONTAL);
                 LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,ViewGroup.LayoutParams.WRAP_CONTENT);
+                linearLayout.setOrientation(LinearLayout.HORIZONTAL);
                 linearLayout.setLayoutParams(params);
 
                 final String key = movieTrailerAndReview.getKey()[i];
 
                 //Add media player image view
-                ImageView trailerPlayer = new ImageView(getActivity());
+                final ImageView trailerPlayer = new ImageView(getActivity());
                 params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT,ViewGroup.LayoutParams.WRAP_CONTENT);
-                params.setMargins(38,10,20,20);
-                trailerPlayer.setImageResource(R.drawable.ic_play_arrow_black_24dp);
+                params.setMargins((int)getResources().getDimension(R.dimen.mediaPlayerMarginLeft),(int)getResources().getDimension(R.dimen.mediaPlayerMarginTop),
+                        (int)getResources().getDimension(R.dimen.mediaPlayerMarginRight),(int)getResources().getDimension(R.dimen.mediaPlayerMarginBottom));
+                params.gravity = Gravity.CENTER;
+                trailerPlayer.setImageResource(R.drawable.color_change);
                 trailerPlayer.setLayoutParams(params);
                 linearLayout.addView(trailerPlayer);
-                trailerPlayer.setOnClickListener(new View.OnClickListener() {
+                trailerPlayer.setOnClickListener(new View.OnClickListener()
+                {
                     @Override
-                    public void onClick(View view) {
-                        Intent youtubeIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://www.youtube.com/watch?v="+key));
+                    public void onClick(View view)
+                    {
+                        Intent youtubeIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(MovieConstants.YOUTUBE_LINK+key));
                         startActivity(youtubeIntent);
                     }
                 });
@@ -286,7 +290,9 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
                 textView.setTextSize(getResources().getDimension(R.dimen.trailerAndReviewTextSize));
                 textView.setText(movieTrailerAndReview.getTrailerName()[i]);
                 params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT,ViewGroup.LayoutParams.WRAP_CONTENT);
-                params.setMargins(26,26,0,10);
+                params.gravity = Gravity.CENTER;
+                params.setMargins((int)getResources().getDimension(R.dimen.trailerTextMarginLeft),(int)getResources().getDimension(R.dimen.trailerTextMarginTop),
+                        (int)getResources().getDimension(R.dimen.trailerTextMarginRight),(int)getResources().getDimension(R.dimen.trailerTextMarginBottom));
                 textView.setLayoutParams(params);
                 textView.setGravity(Gravity.CENTER_VERTICAL);
                 linearLayout.addView(textView);
@@ -296,7 +302,8 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
                 //Add line separator
                 TableRow separator = new TableRow(getActivity());
                 params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,1);
-                params.setMargins(16,0,16,7);
+                params.setMargins((int)getResources().getDimension(R.dimen.lineSeparatorMarginLeft),(int)getResources().getDimension(R.dimen.lineSeparatorMarginTop),
+                        (int)getResources().getDimension(R.dimen.lineSeparatorMarginRight),(int)getResources().getDimension(R.dimen.lineSeparatorMarginBottom));
                 separator.setBackgroundColor(getResources().getColor(R.color.listDividerColor));
                 separator.setLayoutParams(params);
 
@@ -313,13 +320,17 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
                 }
             }
 
-            //Add line separator
-            TableRow separator = new TableRow(getActivity());
-            LinearLayout.LayoutParams sepparams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,2);
-            sepparams.setMargins(32,0,32,7);
-            separator.setBackgroundColor(getResources().getColor(android.R.color.black));
-            separator.setLayoutParams(sepparams);
-            trailerAndReviewList.addView(separator);
+            if(movieTrailerAndReview.getAuthors().length > 0)
+            {
+                //Add line separator
+                TableRow separator = new TableRow(getActivity());
+                LinearLayout.LayoutParams sepparams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 2);
+                sepparams.setMargins((int)getResources().getDimension(R.dimen.trailerLastLineSeparatorMarginLeft),(int)getResources().getDimension(R.dimen.trailerLastLineSeparatorMarginTop),
+                        (int)getResources().getDimension(R.dimen.trailerLastLineSeparatorMarginRight),(int)getResources().getDimension(R.dimen.trailerLastLineSeparatorMarginBottom));
+                separator.setBackgroundColor(getResources().getColor(android.R.color.black));
+                separator.setLayoutParams(sepparams);
+                trailerAndReviewList.addView(separator);
+            }
 
             for(int i=0;i<movieTrailerAndReview.getAuthors().length;i++)
             {
@@ -332,7 +343,8 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
                 //Create Review heading
                 TextView reviewText = new TextView(getActivity());
                 params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT,ViewGroup.LayoutParams.WRAP_CONTENT);
-                params.setMargins(26,7,0,6);
+                params.setMargins((int)getResources().getDimension(R.dimen.reviewHeadingMarginLeft),(int)getResources().getDimension(R.dimen.reviewHeadingMarginTop),
+                        (int)getResources().getDimension(R.dimen.reviewHeadingMarginRight),(int)getResources().getDimension(R.dimen.reviewHeadingMarginBottom));
                 reviewText.setLayoutParams(params);
                 reviewText.setText(getResources().getString(R.string.reviewHeading));
                 reviewText.setTextSize(getResources().getDimension(R.dimen.trailerAndReviewHeadingTextSize));
@@ -341,10 +353,11 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
                     reviewLinearLayout.addView(reviewText);
                 }
 
-                //Create Review info
+                //Create Review author
                 TextView author = new TextView(getActivity());
                 params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT,ViewGroup.LayoutParams.WRAP_CONTENT);
-                params.setMargins(38,10,20,20);
+                params.setMargins((int)getResources().getDimension(R.dimen.reviewAuthorMarginLeft),(int)getResources().getDimension(R.dimen.reviewAuthorMarginTop),
+                        (int)getResources().getDimension(R.dimen.reviewAuthorMarginRight),(int)getResources().getDimension(R.dimen.reviewAuthorMarginBottom));
                 author.setLayoutParams(params);
                 author.setText(movieTrailerAndReview.getAuthors()[i]);
                 author.setTypeface(null,Typeface.BOLD);
@@ -353,7 +366,8 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
                 //Create Review content
                 TextView content = new TextView(getActivity());
                 params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT,ViewGroup.LayoutParams.WRAP_CONTENT);
-                params.setMargins(38,10,20,20);
+                params.setMargins((int)getResources().getDimension(R.dimen.reviewContentMarginLeft),(int)getResources().getDimension(R.dimen.reviewContentMarginTop),
+                        (int)getResources().getDimension(R.dimen.reviewContentMarginRight),(int)getResources().getDimension(R.dimen.reviewContentMarginBottom));
                 content.setLayoutParams(params);
                 content.setText(movieTrailerAndReview.getContents()[i]);
                 reviewLinearLayout.addView(content);
@@ -363,7 +377,8 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
                 //Add line separator
                 TableRow reviewSeparator = new TableRow(getActivity());
                 params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,1);
-                params.setMargins(16,0,16,7);
+                params.setMargins((int)getResources().getDimension(R.dimen.lineSeparatorMarginLeft),(int)getResources().getDimension(R.dimen.lineSeparatorMarginTop),
+                        (int)getResources().getDimension(R.dimen.lineSeparatorMarginRight),(int)getResources().getDimension(R.dimen.lineSeparatorMarginBottom));
                 reviewSeparator.setBackgroundColor(getResources().getColor(R.color.listDividerColor));
                 reviewSeparator.setLayoutParams(params);
 

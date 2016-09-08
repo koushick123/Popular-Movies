@@ -7,4 +7,55 @@
     <dimen name="movieThumbnailWidth">95dp</dimen>
     <dimen name="trailerAndReviewHeadingTextSize">10sp</dimen>
     <dimen name="trailerAndReviewTextSize">7sp</dimen>
+
+    <dimen name="movieHeadingPadLeft">16dp</dimen>
+    <dimen name="movieHeadingPadRight">16dp</dimen>
+    <dimen name="movieHeadingPadBottom">30dp</dimen>
+    <dimen name="movieHeadingPadUp">30dp</dimen>
+    <dimen name="movieDetailMarginLeft">26dp</dimen>
+    <dimen name="movieDetailDatesMarginLeft">36dp</dimen>
+    <dimen name="movieDetailMarginTop">10dp</dimen>
+    <dimen name="movieSynopsisMarginBottom">7dp</dimen>
+
+    <dimen name="trailerHeadMarginTop">7dp</dimen>
+    <dimen name="trailerHeadMarginBottom">6dp</dimen>
+    <dimen name="trailerTextSize">20sp</dimen>
+    <dimen name="movieRelDateTextSize">22sp</dimen>
+    <dimen name="movieRatingTextSize">10sp</dimen>
+
+    <dimen name="mediaPlayerMarginLeft">30dp</dimen>
+    <dimen name="mediaPlayerMarginTop">15dp</dimen>
+    <dimen name="mediaPlayerMarginRight">20dp</dimen>
+    <dimen name="mediaPlayerMarginBottom">15dp</dimen>
+
+    <dimen name="trailerTextMarginLeft">26dp</dimen>
+    <dimen name="trailerTextMarginTop">18dp</dimen>
+    <dimen name="trailerTextMarginRight">0dp</dimen>
+    <dimen name="trailerTextMarginBottom">18dp</dimen>
+
+    <dimen name="lineSeparatorMarginLeft">16dp</dimen>
+    <dimen name="lineSeparatorMarginTop">0dp</dimen>
+    <dimen name="lineSeparatorMarginRight">16dp</dimen>
+    <dimen name="lineSeparatorMarginBottom">7dp</dimen>
+
+    <dimen name="trailerLastLineSeparatorMarginLeft">16dp</dimen>
+    <dimen name="trailerLastLineSeparatorMarginTop">0dp</dimen>
+    <dimen name="trailerLastLineSeparatorMarginRight">16dp</dimen>
+    <dimen name="trailerLastLineSeparatorMarginBottom">7dp</dimen>
+
+    <dimen name="reviewHeadingMarginLeft">16dp</dimen>
+    <dimen name="reviewHeadingMarginTop">7dp</dimen>
+    <dimen name="reviewHeadingMarginRight">0dp</dimen>
+    <dimen name="reviewHeadingMarginBottom">6dp</dimen>
+
+    <dimen name="reviewAuthorMarginLeft">17dp</dimen>
+    <dimen name="reviewAuthorMarginTop">10dp</dimen>
+    <dimen name="reviewAuthorMarginRight">20dp</dimen>
+    <dimen name="reviewAuthorMarginBottom">20dp</dimen>
+
+    <dimen name="reviewContentMarginLeft">17dp</dimen>
+    <dimen name="reviewContentMarginTop">10dp</dimen>
+    <dimen name="reviewContentMarginRight">20dp</dimen>
+    <dimen name="reviewContentMarginBottom">20dp</dimen>
+
 </resources>
