@@ -4,7 +4,11 @@
     android:layout_height="match_parent"
     >
 
-<LinearLayout
+<FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+    <LinearLayout
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
@@ -67,6 +71,16 @@
                 android:textSize="@dimen/movieRatingTextSize"
                 />
 
+            <ImageView
+                android:layout_width="@dimen/movieDetailFavStarWidth"
+                android:layout_height="@dimen/movieDetailFavStarHeight"
+                android:id="@+id/favoriteStar"
+                android:layout_marginLeft="@dimen/movieDetailFavStarMarginLeft"
+                android:layout_marginTop="@dimen/movieDetailMarginTop"
+                android:src="@drawable/ic_star_border_black_24dp"
+                android:onClick=""
+                />
+
             </LinearLayout>
     </LinearLayout>
 
@@ -105,10 +119,6 @@
         android:text="@string/trailerHeading"
         />
 
-    <FrameLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent">
-
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
@@ -116,18 +126,20 @@
             android:id="@+id/trailerAndReviewList"
             >
         </LinearLayout>
+        />
+    </LinearLayout>
 
         <ImageView
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
+            android:layout_gravity="center"
             android:id="@+id/trailerPlaceHolderImage" />
 
         <ProgressBar
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:layout_gravity="center"
-            android:id="@+id/trailerSpinner"
-        />
-    </FrameLayout>
-</LinearLayout>
+            android:id="@+id/trailerSpinner" />
+
+</FrameLayout>
 </ScrollView>

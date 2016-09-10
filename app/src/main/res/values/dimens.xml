@@ -14,6 +14,10 @@
     <dimen name="movieHeadingPadUp">30dp</dimen>
     <dimen name="movieDetailMarginLeft">26dp</dimen>
     <dimen name="movieDetailDatesMarginLeft">36dp</dimen>
+    <dimen name="movieDetailFavStarMarginLeft">36dp</dimen>
+    <dimen name="movieDetailFavStarMarginTop">5dp</dimen>
+    <dimen name="movieDetailFavStarWidth">40dp</dimen>
+    <dimen name="movieDetailFavStarHeight">50dp</dimen>
     <dimen name="movieDetailMarginTop">10dp</dimen>
     <dimen name="movieSynopsisMarginBottom">7dp</dimen>
 

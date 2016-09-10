@@ -26,4 +26,7 @@
     <string name="settings_order_by_top_rated_value">top_rated</string>
 
     <string name="reviewHeading">Reviews:</string>
+
+    <string name="noTrailers">No Trailers</string>
+    <string name="noReviews">No Reviews</string>
 </resources>

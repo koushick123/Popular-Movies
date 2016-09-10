@@ -297,7 +297,7 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
     {
         if(movieListView == null || (movieListView.getEmptyView() != null && (((ImageView) movieListView.getEmptyView()).getVisibility() == View.VISIBLE)))
         {
-            Log.d(LOG_TAG,"Empty view === "+movieListView.getEmptyView());
+            Log.d(LOG_TAG,"Empty view === "+movieListView);
             if (movieListView == null) {
                 movieListView = (GridView) getActivity().findViewById(R.id.list);
             }

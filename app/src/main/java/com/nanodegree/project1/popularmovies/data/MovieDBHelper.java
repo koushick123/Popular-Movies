@@ -37,10 +37,10 @@ public class MovieDBHelper extends SQLiteOpenHelper
     public void onCreate(SQLiteDatabase sqLiteDatabase)
     {
         String CREATE_TABLE = "CREATE "+MovieTableConstants.MOVIE_TABLE+" ( "+
-                MovieTableConstants.ID + " INTEGER NOT NULL PRIMARY KEY AUTO_INCREMENT, "+
+                MovieTableConstants.ID + " INTEGER NOT NULL PRIMARY KEY , "+
                 MovieTableConstants.HEADING + " TEXT, " +
                 MovieTableConstants.RELEASE_DATE + " TEXT, " +
-                MovieTableConstants.USER_RATING + " INT, " +
+                MovieTableConstants.USER_RATING + " INTEGER, " +
                 MovieTableConstants.SYNOPSIS + " TEXT, "+
                 MovieTableConstants.THUMBNAIL + " BLOB "+
                 " ); ";
@@ -48,7 +48,7 @@ public class MovieDBHelper extends SQLiteOpenHelper
         sqLiteDatabase.execSQL(CREATE_TABLE);
 
         String CREATE_TABLE_TRAILERS = "CREATE " + MovieTableConstants.MOVIE_TRAILERS_TABLE + " ( " +
-                MovieTableConstants.MOVIE_TRAILER_ID + " INTEGER NOT NULL PRIMARY KEY AUTO_INCREMENT, " +
+                MovieTableConstants.MOVIE_TRAILER_ID + " INTEGER NOT NULL PRIMARY KEY , " +
                 MovieTableConstants.ID + " INTEGER NOT NULL, "+
                 MovieTableConstants.NAME + " TEXT, " +
                 MovieTableConstants.KEY + " TEXT, "+
@@ -58,7 +58,7 @@ public class MovieDBHelper extends SQLiteOpenHelper
         sqLiteDatabase.execSQL(CREATE_TABLE_TRAILERS);
 
         String CREATE_TABLE_REVIEWS = "CREATE " + MovieTableConstants.MOVIE_REVIEWS_TABLE + " ( " +
-                MovieTableConstants.MOVIE_REVIEWS_TABLE + " INTEGER NOT NULL PRIMARY KEY AUTO_INCREMENT, " +
+                MovieTableConstants.MOVIE_REVIEWS_TABLE + " INTEGER NOT NULL PRIMARY KEY , " +
                 MovieTableConstants.ID + " INTEGER NOT NULL, "+
                 MovieTableConstants.AUTHOR + " TEXT, "+
                 MovieTableConstants.CONTENT + " TEXT, "+
