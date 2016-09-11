@@ -207,12 +207,6 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
         Log.d(LOG_TAG,"==== onActivityCreated ==== movieBundle === "+movieBundle);
         if(savedMovie != null)
         {
-            /*if(movieHeading.getVisibility() == View.INVISIBLE && hr.getVisibility() == View.INVISIBLE && favStar.getVisibility() == View.INVISIBLE)
-            {
-                movieHeading.setVisibility(View.VISIBLE);
-                hr.setVisibility(View.VISIBLE);
-                favStar.setVisibility(View.VISIBLE);
-            }*/
             displayMovieDetails(movieBundle);
             displayMovieTrailerAndReviewDetails(savedMovie);
         }
@@ -246,12 +240,6 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
 
     private void displayMovieDetails(Bundle movie)
     {
-        /*if(movieHeading.getVisibility() == View.INVISIBLE && hr.getVisibility() == View.INVISIBLE && favStar.getVisibility() == View.INVISIBLE)
-        {
-            movieHeading.setVisibility(View.VISIBLE);
-            hr.setVisibility(View.VISIBLE);
-            favStar.setVisibility(View.VISIBLE);
-        }*/
         movieHeading.setText(((Movie)movie.getParcelable("movieDetail")).getOriginalTitle());
         Picasso.with(getActivity().getApplicationContext()).load(MovieConstants.BASE_PICASSO_URL+MovieConstants.IMAGE_SIZE+((Movie)movie.getParcelable("movieDetail")).getPoster_path()).into(movieThumbnail);
         movieReleaseDate.setText(((Movie)movie.getParcelable("movieDetail")).getReleaseDate());
@@ -335,15 +323,9 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
                 params.setMargins((int) getResources().getDimension(R.dimen.trailerTextMarginLeft), (int) getResources().getDimension(R.dimen.trailerTextMarginTop),
                         (int) getResources().getDimension(R.dimen.trailerTextMarginRight), (int) getResources().getDimension(R.dimen.trailerTextMarginBottom));
                 textView.setLayoutParams(params);
-                textView.setGravity(Gravity.CENTER_VERTICAL);
+                textView.setGravity(Gravity.CENTER);
                 trailerAndReviewList.addView(textView);
             }
-
-            //Create Linearlayout
-            LinearLayout reviewLinearLayout = new LinearLayout(getActivity());
-            reviewLinearLayout.setOrientation(LinearLayout.VERTICAL);
-            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-            reviewLinearLayout.setLayoutParams(params);
 
             //Add line separator
             TableRow separator = new TableRow(getActivity());
@@ -356,7 +338,7 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
 
             //Create Review heading
             TextView reviewText = new TextView(getActivity());
-            params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
             params.setMargins((int) getResources().getDimension(R.dimen.reviewHeadingMarginLeft), (int) getResources().getDimension(R.dimen.reviewHeadingMarginTop),
                     (int) getResources().getDimension(R.dimen.reviewHeadingMarginRight), (int) getResources().getDimension(R.dimen.reviewHeadingMarginBottom));
             reviewText.setLayoutParams(params);
@@ -372,6 +354,13 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
                     {
                         trailerAndReviewList.addView(reviewText);
                     }
+
+                    //Create Linearlayout
+                    LinearLayout reviewLinearLayout = new LinearLayout(getActivity());
+                    reviewLinearLayout.setOrientation(LinearLayout.VERTICAL);
+                    params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+                    reviewLinearLayout.setLayoutParams(params);
+
                     //Create Review author
                     TextView author = new TextView(getActivity());
                     params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
@@ -384,10 +373,10 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
 
                     //Create Review content
                     TextView content = new TextView(getActivity());
-                    params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-                    params.setMargins((int) getResources().getDimension(R.dimen.reviewContentMarginLeft), (int) getResources().getDimension(R.dimen.reviewContentMarginTop),
+                    LinearLayout.LayoutParams conparams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+                    conparams.setMargins((int) getResources().getDimension(R.dimen.reviewContentMarginLeft), (int) getResources().getDimension(R.dimen.reviewContentMarginTop),
                             (int) getResources().getDimension(R.dimen.reviewContentMarginRight), (int) getResources().getDimension(R.dimen.reviewContentMarginBottom));
-                    content.setLayoutParams(params);
+                    content.setLayoutParams(conparams);
                     content.setText(movieTrailerAndReview.getContents()[i]);
                     reviewLinearLayout.addView(content);
 
@@ -434,13 +423,6 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
         }
     }
 
-    /*public View addAsFavorite(View view)
-    {
-        ContentValues movieDetails = new ContentValues();
-        movieDetails.p
-        getActivity().getContentResolver().insert("/movie_id/",)
-    }*/
-
     private boolean checkIfInternetIsAvailable()
     {
         connectivityManager = (ConnectivityManager)getActivity().getApplicationContext().getSystemService(Context.CONNECTIVITY_SERVICE);
@@ -463,6 +445,7 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
     private void loadMovies()
     {
         getLoaderManager().initLoader(1, null, getMovieObj()).forceLoad();
+        movieDetails.setVisibility(View.INVISIBLE);
         spinner.setVisibility(View.VISIBLE);
     }
 
