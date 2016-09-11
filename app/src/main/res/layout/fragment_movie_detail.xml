@@ -78,7 +78,6 @@
                 android:layout_marginLeft="@dimen/movieDetailFavStarMarginLeft"
                 android:layout_marginTop="@dimen/movieDetailMarginTop"
                 android:src="@drawable/ic_star_border_black_24dp"
-                android:onClick=""
                 />
 
             </LinearLayout>
