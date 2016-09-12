@@ -3,10 +3,13 @@ package com.nanodegree.project1.popularmovies;
 import android.app.Fragment;
 import android.app.LoaderManager;
 import android.content.BroadcastReceiver;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.Loader;
+import android.database.Cursor;
+import android.graphics.Bitmap;
 import android.graphics.Typeface;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
@@ -24,7 +27,10 @@ import android.widget.ProgressBar;
 import android.widget.TableRow;
 import android.widget.TextView;
 
+import com.nanodegree.project1.popularmovies.data.MovieTableConstants;
 import com.squareup.picasso.Picasso;
+
+import java.io.ByteArrayOutputStream;
 
 public class MovieDetailFragment extends Fragment implements LoaderManager.LoaderCallbacks<Movie>
 {
@@ -106,6 +112,80 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
             }
         }
     }
+
+    ImageView.OnClickListener favStarListener = new ImageView.OnClickListener()
+    {
+        @Override
+        public void onClick(View view)
+        {
+            //Toast.makeText(getActivity().getApplicationContext(),"Add as fav",Toast.LENGTH_LONG).show();
+            if(favStar.getDrawable().getConstantState() == getResources().getDrawable(R.drawable.ic_star_border_black_24dp).getConstantState())
+            {
+                //Get Movie details
+                ContentValues movie = new ContentValues();
+                movie.put("heading",((Movie)movieBundle.getParcelable("movieDetail")).getOriginalTitle());
+
+                //Extract Bitmap from thumbnail and convert to byte array
+                movieThumbnail.buildDrawingCache();
+                Bitmap bitmap = movieThumbnail.getDrawingCache();
+                ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+                bitmap.compress(Bitmap.CompressFormat.PNG,0,byteArrayOutputStream);
+
+                movie.put("thumbnail",byteArrayOutputStream.toByteArray());
+                movie.put("releaseDate",((Movie)movieBundle.getParcelable("movieDetail")).getReleaseDate());
+                movie.put("userRating",((Movie)movieBundle.getParcelable("movieDetail")).getUserRating());
+                movie.put("synopsis",((Movie)movieBundle.getParcelable("movieDetail")).getSynopsis());
+                getActivity().getContentResolver().insert(Uri.parse(MovieTableConstants.BASE_CONTENT_URI+"/addMovie"),movie);
+
+                //Get Movie trailer
+                Cursor max_movie_id = getActivity().getContentResolver().query(Uri.parse(MovieTableConstants.BASE_CONTENT_URI+"/getMaxMovieId/"), null, null, null, null);
+                if(savedMovie.getTrailerName().length > 0)
+                {
+                    ContentValues[] trailers = new ContentValues[savedMovie.getTrailerName().length];
+                    if(max_movie_id == null)
+                    {
+                        max_movie_id = getActivity().getContentResolver().query(Uri.parse(MovieTableConstants.BASE_CONTENT_URI+"/getMaxMovieId/"), null, null, null, null);
+                    }
+                    for (int i = 0; i < savedMovie.getTrailerName().length; i++)
+                    {
+                        trailers[i].put("name", savedMovie.getTrailerName()[i]);
+                        trailers[i].put("key", savedMovie.getKey()[i]);
+                        trailers[i].put("movieID", max_movie_id.getInt(max_movie_id.getColumnIndex("MOVIE_ID")));
+                    }
+                    getActivity().getContentResolver().bulkInsert(Uri.parse(MovieTableConstants.BASE_CONTENT_URI+"/addMovie/trailer"), trailers);
+                }
+
+                //Get Movie review
+                if(savedMovie.getAuthors().length > 0)
+                {
+                    ContentValues[] reviews = new ContentValues[savedMovie.getAuthors().length];
+                    if(max_movie_id == null)
+                    {
+                        max_movie_id = getActivity().getContentResolver().query(Uri.parse(MovieTableConstants.BASE_CONTENT_URI+"/getMaxMovieId/"), null, null, null, null);
+                    }
+                    for (int i = 0; i < savedMovie.getAuthors().length; i++)
+                    {
+                        reviews[i].put("author", savedMovie.getAuthors()[i]);
+                        reviews[i].put("content", savedMovie.getContents()[i]);
+                        reviews[i].put("movieID", max_movie_id.getInt(max_movie_id.getColumnIndex("MOVIE_ID")));
+                    }
+                    getActivity().getContentResolver().bulkInsert(Uri.parse(MovieTableConstants.BASE_CONTENT_URI+"/addMovie/review"), reviews);
+                }
+
+                Cursor allMovies = getActivity().getContentResolver().query(Uri.parse(MovieTableConstants.BASE_CONTENT_URI+"/allMovie"), null, null, null, null);
+                for(int i=0;i<allMovies.getCount();i++)
+                {
+                    Log.d(LOG_TAG,"MOVIES ==== "+allMovies.getInt(allMovies.getColumnIndex("heading")));
+                }
+
+                favStar.setImageResource(R.drawable.ic_grade_black_24dp);
+            }
+            else
+            {
+                favStar.setImageResource(R.drawable.ic_star_border_black_24dp);
+            }
+        }
+    };
 
     BroadcastReceiver broadcastReceiver = new BroadcastReceiver()
     {
@@ -214,6 +294,7 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
         {
             checkAndLoadMovies();
         }
+        favStar.setOnClickListener(favStarListener);
     }
 
     private void setEmptyListView(String msg)

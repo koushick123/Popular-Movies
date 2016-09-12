@@ -31,6 +31,10 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.nanodegree.project1.popularmovies.MovieActivity" />
         </activity>
+        <provider
+            android:authorities="@string/content_authority"
+            android:name=".data.MovieProvider"
+            />
     </application>
 
 </manifest>

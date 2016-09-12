@@ -1,14 +1,12 @@
 package com.nanodegree.project1.popularmovies.data;
 
-import android.net.Uri;
-
 /**
  * Created by Koushick on 09-09-2016.
  */
 public class MovieTableConstants
 {
     public static final String CONTENT_AUTHORITY = "com.nanodegree.project1.popularmovies.data";
-    public static final Uri BASE_CONTENT_URI = Uri.parse("content://" + CONTENT_AUTHORITY);
+    public static final String BASE_CONTENT_URI = "content://" + CONTENT_AUTHORITY;
 
     //Tables Names
     public static final String MOVIE_TABLE = "movie";

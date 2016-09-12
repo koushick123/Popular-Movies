@@ -29,4 +29,6 @@
 
     <string name="noTrailers">No Trailers</string>
     <string name="noReviews">No Reviews</string>
+
+    <string name="content_authority">com.nanodegree.project1.popularmovies.data</string>
 </resources>
