@@ -48,10 +48,6 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
         spinner = (ProgressBar)rootView.findViewById(R.id.spinner);
         placeHolderImage = (ImageView)rootView.findViewById(R.id.placeHolderImage);
         movieListView = (GridView)rootView.findViewById(R.id.list);
-        if(savedInstanceState == null)
-        {
-            //checkAndLoadMovies();
-        }
         return rootView;
     }
 

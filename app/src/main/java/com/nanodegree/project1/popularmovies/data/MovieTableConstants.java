@@ -15,6 +15,7 @@ public class MovieTableConstants
 
     //Movie Table Columns
     public static final String ID = "_ID";
+    public static final String MOVIE_ID = "movieID";
     public static final String THUMBNAIL = "thumbnail";
     public static final String HEADING = "heading";
     public static final String SYNOPSIS = "synopsis";

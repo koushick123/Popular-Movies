@@ -38,6 +38,7 @@ public class MovieDBHelper extends SQLiteOpenHelper
     {
         String CREATE_TABLE = "CREATE TABLE "+MovieTableConstants.MOVIE_TABLE+" ( "+
                 MovieTableConstants.ID + " INTEGER NOT NULL PRIMARY KEY , "+
+                MovieTableConstants.MOVIE_ID + " INTEGER NOT NULL , " +
                 MovieTableConstants.HEADING + " TEXT, " +
                 MovieTableConstants.RELEASE_DATE + " TEXT, " +
                 MovieTableConstants.USER_RATING + " INTEGER, " +

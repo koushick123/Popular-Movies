@@ -50,7 +50,7 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
     TableRow hr;
     ImageView favStar;
     LinearLayout movieDetails;
-    Movie savedMovie;
+    Movie trailerAndReviewInfoMovie;
 
     @Nullable
     @Override
@@ -73,13 +73,12 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
         if(savedInstanceState == null)
         {
             movieBundle = getArguments();
-            //checkAndLoadMovies();
             Log.d(LOG_TAG,movieBundle+"  oncreateview");
         }
         else
         {
             movieBundle = savedInstanceState.getParcelable("movieInfo");
-            savedMovie = savedInstanceState.getParcelable("movieTrailer");
+            trailerAndReviewInfoMovie = savedInstanceState.getParcelable("movieTrailer");
         }
         return rootView;
     }
@@ -103,8 +102,8 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
     @Override
     public void onResume() {
         super.onResume();
-        Log.d(LOG_TAG,"onResume ==>"+savedMovie);
-        if(savedMovie == null)
+        Log.d(LOG_TAG,"onResume ==>"+trailerAndReviewInfoMovie);
+        if(trailerAndReviewInfoMovie == null)
         {
             if(checkIfInternetIsAvailable())
             {
@@ -118,6 +117,7 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
         @Override
         public void onClick(View view)
         {
+            getActivity().getContentResolver().delete(Uri.parse(MovieTableConstants.BASE_CONTENT_URI+"/dropMovie/"),null,null);
             //Toast.makeText(getActivity().getApplicationContext(),"Add as fav",Toast.LENGTH_LONG).show();
             if(favStar.getDrawable().getConstantState() == getResources().getDrawable(R.drawable.ic_star_border_black_24dp).getConstantState())
             {
@@ -135,38 +135,39 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
                 movie.put("releaseDate",((Movie)movieBundle.getParcelable("movieDetail")).getReleaseDate());
                 movie.put("userRating",((Movie)movieBundle.getParcelable("movieDetail")).getUserRating());
                 movie.put("synopsis",((Movie)movieBundle.getParcelable("movieDetail")).getSynopsis());
+                movie.put("movieID",((Movie)movieBundle.getParcelable("movieDetail")).getId());
                 getActivity().getContentResolver().insert(Uri.parse(MovieTableConstants.BASE_CONTENT_URI+"/addMovie"),movie);
 
                 //Get Movie trailer
                 Cursor max_movie_id = getActivity().getContentResolver().query(Uri.parse(MovieTableConstants.BASE_CONTENT_URI+"/getMaxMovieId/"), null, null, null, null);
-                if(savedMovie.getTrailerName().length > 0)
+                if(trailerAndReviewInfoMovie.getTrailerName().length > 0)
                 {
-                    ContentValues[] trailers = new ContentValues[savedMovie.getTrailerName().length];
+                    ContentValues[] trailers = new ContentValues[trailerAndReviewInfoMovie.getTrailerName().length];
                     if(max_movie_id == null)
                     {
                         max_movie_id = getActivity().getContentResolver().query(Uri.parse(MovieTableConstants.BASE_CONTENT_URI+"/getMaxMovieId/"), null, null, null, null);
                     }
-                    for (int i = 0; i < savedMovie.getTrailerName().length; i++)
+                    for (int i = 0; i < trailerAndReviewInfoMovie.getTrailerName().length; i++)
                     {
-                        trailers[i].put("name", savedMovie.getTrailerName()[i]);
-                        trailers[i].put("key", savedMovie.getKey()[i]);
+                        trailers[i].put("name", trailerAndReviewInfoMovie.getTrailerName()[i]);
+                        trailers[i].put("key", trailerAndReviewInfoMovie.getKey()[i]);
                         trailers[i].put("movieID", max_movie_id.getInt(max_movie_id.getColumnIndex("MOVIE_ID")));
                     }
                     getActivity().getContentResolver().bulkInsert(Uri.parse(MovieTableConstants.BASE_CONTENT_URI+"/addMovie/trailer"), trailers);
                 }
 
                 //Get Movie review
-                if(savedMovie.getAuthors().length > 0)
+                if(trailerAndReviewInfoMovie.getAuthors().length > 0)
                 {
-                    ContentValues[] reviews = new ContentValues[savedMovie.getAuthors().length];
+                    ContentValues[] reviews = new ContentValues[trailerAndReviewInfoMovie.getAuthors().length];
                     if(max_movie_id == null)
                     {
                         max_movie_id = getActivity().getContentResolver().query(Uri.parse(MovieTableConstants.BASE_CONTENT_URI+"/getMaxMovieId/"), null, null, null, null);
                     }
-                    for (int i = 0; i < savedMovie.getAuthors().length; i++)
+                    for (int i = 0; i < trailerAndReviewInfoMovie.getAuthors().length; i++)
                     {
-                        reviews[i].put("author", savedMovie.getAuthors()[i]);
-                        reviews[i].put("content", savedMovie.getContents()[i]);
+                        reviews[i].put("author", trailerAndReviewInfoMovie.getAuthors()[i]);
+                        reviews[i].put("content", trailerAndReviewInfoMovie.getContents()[i]);
                         reviews[i].put("movieID", max_movie_id.getInt(max_movie_id.getColumnIndex("MOVIE_ID")));
                     }
                     getActivity().getContentResolver().bulkInsert(Uri.parse(MovieTableConstants.BASE_CONTENT_URI+"/addMovie/review"), reviews);
@@ -238,9 +239,9 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
         {
             outState.putParcelable("movieInfo",movieBundle);
         }
-        if(savedMovie != null)
+        if(trailerAndReviewInfoMovie != null)
         {
-            outState.putParcelable("movieTrailer",savedMovie);
+            outState.putParcelable("movieTrailer",trailerAndReviewInfoMovie);
         }
         super.onSaveInstanceState(outState);
     }
@@ -285,10 +286,10 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
         super.onActivityCreated(savedInstanceState);
         Log.d(LOG_TAG,"==== onActivityCreated ===="+savedInstanceState);
         Log.d(LOG_TAG,"==== onActivityCreated ==== movieBundle === "+movieBundle);
-        if(savedMovie != null)
+        if(trailerAndReviewInfoMovie != null)
         {
             displayMovieDetails(movieBundle);
-            displayMovieTrailerAndReviewDetails(savedMovie);
+            displayMovieTrailerAndReviewDetails(trailerAndReviewInfoMovie);
         }
         else
         {
@@ -495,7 +496,7 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
                 textView.setGravity(Gravity.CENTER_VERTICAL);
                 trailerAndReviewList.addView(textView);
             }
-            savedMovie = movieTrailerAndReview;
+            trailerAndReviewInfoMovie = movieTrailerAndReview;
             setEmptyListView(MovieConstants.EMPTY_TEXT);
         }
         else
