@@ -31,7 +31,7 @@ import java.util.List;
  */
 public class MovieFragment extends Fragment implements LoaderManager.LoaderCallbacks<List<Movie>>
 {
-    private String MOVIE_DB_API_KEY = "?api_key=9c8a44d30593675f02b346eee8f66839";
+    private String MOVIE_DB_API_KEY = "?api_key=";
     private String MOVIE_DB_BASE_URL = "http://api.themoviedb.org/3/movie/";
     public static final String LOG_TAG = MovieFragment.class.getName();
     private GridView movieListView;
