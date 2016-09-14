@@ -41,8 +41,8 @@ public class MovieAdapter extends ArrayAdapter
         Movie movie = (Movie)getItem(position);
         ImageView moviePoster = (ImageView)listItem.findViewById(R.id.moviePoster);
         GridView movieGrid = (GridView)parent.findViewById(R.id.list);
-        Log.d(LOG_TAG,"Orientation == "+getContext().getResources().getConfiguration().orientation);
         int orientation = getContext().getResources().getConfiguration().orientation;
+        Log.d(LOG_TAG,"Orientation == "+orientation);
         if(orientation == Configuration.ORIENTATION_LANDSCAPE)
         {
             movieGrid.setNumColumns(3);

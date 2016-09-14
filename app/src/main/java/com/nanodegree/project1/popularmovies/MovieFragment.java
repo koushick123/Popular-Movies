@@ -31,7 +31,7 @@ import java.util.List;
  */
 public class MovieFragment extends Fragment implements LoaderManager.LoaderCallbacks<List<Movie>>
 {
-    private String MOVIE_DB_API_KEY = "?api_key=";
+    private String MOVIE_DB_API_KEY = "?api_key=9c8a44d30593675f02b346eee8f66839";
     private String MOVIE_DB_BASE_URL = "http://api.themoviedb.org/3/movie/";
     public static final String LOG_TAG = MovieFragment.class.getName();
     private GridView movieListView;
@@ -40,6 +40,9 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
     private ProgressBar spinner;
     ImageView placeHolderImage;
     private ArrayList<Movie> allMovies;
+    SharedPreferences sharedPrefs;
+    String oldSortOrder;
+    int orientation;
     private String EMPTY_TEXT = "", NO_INT_CONN = "No Internet Connection", NO_DATA_FOUND = "No Data Found";
 
     @Nullable
@@ -51,10 +54,8 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
         spinner = (ProgressBar)rootView.findViewById(R.id.spinner);
         placeHolderImage = (ImageView)rootView.findViewById(R.id.placeHolderImage);
         movieListView = (GridView)rootView.findViewById(R.id.list);
-        if(savedInstanceState == null)
-        {
-            checkAndLoadMovies();
-        }
+        sharedPrefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
+
         return rootView;
     }
 
@@ -66,6 +67,8 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
         {
             ArrayList<Movie> movies = savedInstanceState.getParcelableArrayList("parcelMovies");
             Log.d(LOG_TAG,"load movies");
+            oldSortOrder = savedInstanceState.getString("oldSortOrder");
+            orientation = savedInstanceState.getInt("orientation");
             if(movies != null)
             {
                 updateMovies(movies);
@@ -85,6 +88,10 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
             {
                 setEmptyListView(NO_INT_CONN);
             }
+            orientation = getResources().getConfiguration().orientation;
+            oldSortOrder = sharedPrefs.getString(
+                    getString(R.string.settings_order_by_key),
+                    getString(R.string.settings_order_by_default));
         }
     }
 
@@ -96,6 +103,12 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
             Log.d(LOG_TAG, "Saving data before destruction..." + allMovies.size());
             outState.putParcelableArrayList("parcelMovies", allMovies);
         }
+        if(oldSortOrder != null)
+        {
+            Log.d(LOG_TAG, "Saving SORT ORDER before destruction..." + oldSortOrder);
+            outState.putString("oldSortOrder",oldSortOrder);
+        }
+        outState.putInt("orientation",getResources().getConfiguration().orientation);
         super.onSaveInstanceState(outState);
     }
 
@@ -103,11 +116,12 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
     public Loader<List<Movie>> onCreateLoader(int id, Bundle args)
     {
         Log.d(LOG_TAG,"OnCreateLoader");
-        SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
+        sharedPrefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
         String sortOrder = sharedPrefs.getString(
                 getString(R.string.settings_order_by_key),
                 getString(R.string.settings_order_by_default));
 
+        oldSortOrder = sortOrder;
         String modifiedUrl = MOVIE_DB_BASE_URL+sortOrder+MOVIE_DB_API_KEY;
 
         return new MovieLoader(getActivity().getApplicationContext(),modifiedUrl);
@@ -153,11 +167,27 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
     {
         super.onResume();
         Log.d(LOG_TAG,"onResume -> "+allMovies);
-        if(allMovies == null)
+        sharedPrefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
+        String sortOrder = sharedPrefs.getString(
+                getString(R.string.settings_order_by_key),
+                getString(R.string.settings_order_by_default));
+        Log.d(LOG_TAG,"Sort Order -> "+sortOrder);
+        Log.d(LOG_TAG,"Old Sort Order -> "+oldSortOrder);
+        if(allMovies == null || (!sortOrder.equalsIgnoreCase(oldSortOrder)))
         {
             if(checkIfInternetIsAvailable())
             {
-                checkIfMoviesNeedToBeRefreshed();
+                if(allMovies == null) {
+                    checkIfMoviesNeedToBeRefreshed();
+                }
+                else {
+                    setEmptyListView(EMPTY_TEXT);
+                    reLoadMovies();
+                }
+            }
+            else
+            {
+                setEmptyListView(NO_INT_CONN);
             }
         }
     }
@@ -291,6 +321,13 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
         }
     }
 
+    private void reLoadMovies()
+    {
+        Log.d(LOG_TAG, "reLoading Movies");
+        getLoaderManager().restartLoader(1,null,getMovieObj()).forceLoad();
+        spinner.setVisibility(View.VISIBLE);
+    }
+
     private void loadMovies()
     {
         getLoaderManager().initLoader(1, null, getMovieObj()).forceLoad();
@@ -308,6 +345,4 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
             loadMovies();
         }
     }
-
-
 }
