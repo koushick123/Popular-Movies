@@ -27,29 +27,42 @@ public class MovieAdapter extends ArrayAdapter
         super(context, 0, movies);
     }
 
+    static class ViewHolderImage{
+        GridView movieGrid;
+        ImageView movieThumbnail;
+    }
+
     @NonNull
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
         View listItem = convertView;
+        ViewHolderImage viewHolderImage;
 
         if(listItem == null)
         {
             listItem = LayoutInflater.from(getContext()).inflate(R.layout.movie_list_item,parent,false);
+            viewHolderImage = new ViewHolderImage();
+            viewHolderImage.movieGrid = (GridView)parent.findViewById(R.id.list);
+            viewHolderImage.movieThumbnail = (ImageView)listItem.findViewById(R.id.moviePoster);
+
+            listItem.setTag(viewHolderImage);
+        }
+        else
+        {
+            viewHolderImage = (ViewHolderImage)listItem.getTag();
         }
 
         Movie movie = (Movie)getItem(position);
-        ImageView moviePoster = (ImageView)listItem.findViewById(R.id.moviePoster);
-        GridView movieGrid = (GridView)parent.findViewById(R.id.list);
         int orientation = getContext().getResources().getConfiguration().orientation;
         if(orientation == Configuration.ORIENTATION_LANDSCAPE)
         {
-            movieGrid.setNumColumns(3);
+            viewHolderImage.movieGrid.setNumColumns(3);
         }
         else if (orientation == Configuration.ORIENTATION_PORTRAIT)
         {
-            movieGrid.setNumColumns(2);
+            viewHolderImage.movieGrid.setNumColumns(2);
         }
-        Picasso.with(getContext()).load(BASE_PICASSO_URL+IMAGE_SIZE+movie.getPoster_path()).into(moviePoster);
+        Picasso.with(getContext()).load(BASE_PICASSO_URL+IMAGE_SIZE+movie.getPoster_path()).into(viewHolderImage.movieThumbnail);
 
         return listItem;
     }
