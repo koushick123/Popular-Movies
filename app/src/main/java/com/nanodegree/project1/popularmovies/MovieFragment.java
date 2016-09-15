@@ -42,7 +42,6 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
     private ArrayList<Movie> allMovies;
     SharedPreferences sharedPrefs;
     String oldSortOrder;
-    int orientation;
     private String EMPTY_TEXT = "", NO_INT_CONN = "No Internet Connection", NO_DATA_FOUND = "No Data Found";
 
     @Nullable
@@ -68,7 +67,6 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
             ArrayList<Movie> movies = savedInstanceState.getParcelableArrayList("parcelMovies");
             Log.d(LOG_TAG,"load movies");
             oldSortOrder = savedInstanceState.getString("oldSortOrder");
-            orientation = savedInstanceState.getInt("orientation");
             if(movies != null)
             {
                 updateMovies(movies);
@@ -88,7 +86,6 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
             {
                 setEmptyListView(NO_INT_CONN);
             }
-            orientation = getResources().getConfiguration().orientation;
             oldSortOrder = sharedPrefs.getString(
                     getString(R.string.settings_order_by_key),
                     getString(R.string.settings_order_by_default));
