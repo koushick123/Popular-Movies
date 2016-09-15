@@ -38,6 +38,8 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
     private ProgressBar spinner;
     ImageView placeHolderImage;
     private ArrayList<Movie> allMovies;
+    SharedPreferences sharedPrefs;
+    String oldSortOrder;
 
     @Nullable
     @Override
@@ -48,6 +50,7 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
         spinner = (ProgressBar)rootView.findViewById(R.id.spinner);
         placeHolderImage = (ImageView)rootView.findViewById(R.id.placeHolderImage);
         movieListView = (GridView)rootView.findViewById(R.id.list);
+        sharedPrefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
         return rootView;
     }
 
@@ -59,6 +62,7 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
         {
             ArrayList<Movie> movies = savedInstanceState.getParcelableArrayList("parcelMovies");
             Log.d(LOG_TAG,"load movies");
+            oldSortOrder = savedInstanceState.getString("oldSortOrder");
             if(movies != null)
             {
                 updateMovies(movies);
@@ -78,6 +82,9 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
             {
                 setEmptyListView(MovieConstants.NO_INT_CONN);
             }
+            oldSortOrder = sharedPrefs.getString(
+                    getString(R.string.settings_order_by_key),
+                    getString(R.string.settings_order_by_default));
         }
     }
 
@@ -88,6 +95,11 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
         {
             Log.d(LOG_TAG, "Saving data before destruction..." + allMovies.size());
             outState.putParcelableArrayList("parcelMovies", allMovies);
+        }
+        if(oldSortOrder != null)
+        {
+            Log.d(LOG_TAG, "Saving SORT ORDER before destruction..." + oldSortOrder);
+            outState.putString("oldSortOrder",oldSortOrder);
         }
         super.onSaveInstanceState(outState);
     }
@@ -101,6 +113,7 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
                 getString(R.string.settings_order_by_key),
                 getString(R.string.settings_order_by_default));
 
+        oldSortOrder = sortOrder;
         String modifiedUrl = MovieConstants.MOVIE_DB_BASE_URL+sortOrder+MovieConstants.MOVIE_DB_API_KEY;
 
         return new MovieLoader(getActivity().getApplicationContext(),modifiedUrl);
@@ -146,11 +159,27 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
     {
         super.onResume();
         Log.d(LOG_TAG,"onResume -> "+allMovies);
-        if(allMovies == null)
+        sharedPrefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
+        String sortOrder = sharedPrefs.getString(
+                getString(R.string.settings_order_by_key),
+                getString(R.string.settings_order_by_default));
+        Log.d(LOG_TAG,"Sort Order -> "+sortOrder);
+        Log.d(LOG_TAG,"Old Sort Order -> "+oldSortOrder);
+        if(allMovies == null || (!sortOrder.equalsIgnoreCase(oldSortOrder)))
         {
             if(checkIfInternetIsAvailable())
             {
-                checkIfMoviesNeedToBeRefreshed();
+                if(allMovies == null) {
+                    checkIfMoviesNeedToBeRefreshed();
+                }
+                else {
+                    setEmptyListView(MovieConstants.EMPTY_TEXT);
+                    reLoadMovies();
+                }
+            }
+            else
+            {
+                setEmptyListView(MovieConstants.NO_INT_CONN);
             }
         }
     }
@@ -281,6 +310,13 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
         {
             setEmptyListView(MovieConstants.NO_INT_CONN);
         }
+    }
+
+    private void reLoadMovies()
+    {
+        Log.d(LOG_TAG, "reLoading Movies");
+        getLoaderManager().restartLoader(1,null,getMovieObj()).forceLoad();
+        spinner.setVisibility(View.VISIBLE);
     }
 
     private void loadMovies()

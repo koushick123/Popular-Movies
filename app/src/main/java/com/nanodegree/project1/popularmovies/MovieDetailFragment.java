@@ -117,7 +117,7 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
         @Override
         public void onClick(View view)
         {
-            getActivity().getContentResolver().delete(Uri.parse(MovieTableConstants.BASE_CONTENT_URI+"/dropMovie/"),null,null);
+            //getActivity().getContentResolver().delete(Uri.parse(MovieTableConstants.BASE_CONTENT_URI+"/dropMovie/"),null,null);
             //Toast.makeText(getActivity().getApplicationContext(),"Add as fav",Toast.LENGTH_LONG).show();
             if(favStar.getDrawable().getConstantState() == getResources().getDrawable(R.drawable.ic_star_border_black_24dp).getConstantState())
             {
@@ -147,8 +147,11 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
                     {
                         max_movie_id = getActivity().getContentResolver().query(Uri.parse(MovieTableConstants.BASE_CONTENT_URI+"/getMaxMovieId/"), null, null, null, null);
                     }
+                    max_movie_id.moveToFirst();
+
                     for (int i = 0; i < trailerAndReviewInfoMovie.getTrailerName().length; i++)
                     {
+                        trailers[i] = new ContentValues();
                         trailers[i].put("name", trailerAndReviewInfoMovie.getTrailerName()[i]);
                         trailers[i].put("key", trailerAndReviewInfoMovie.getKey()[i]);
                         trailers[i].put("movieID", max_movie_id.getInt(max_movie_id.getColumnIndex("MOVIE_ID")));
@@ -164,16 +167,21 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
                     {
                         max_movie_id = getActivity().getContentResolver().query(Uri.parse(MovieTableConstants.BASE_CONTENT_URI+"/getMaxMovieId/"), null, null, null, null);
                     }
+                    max_movie_id.moveToFirst();
+
                     for (int i = 0; i < trailerAndReviewInfoMovie.getAuthors().length; i++)
                     {
+                        reviews[i] = new ContentValues();
                         reviews[i].put("author", trailerAndReviewInfoMovie.getAuthors()[i]);
                         reviews[i].put("content", trailerAndReviewInfoMovie.getContents()[i]);
                         reviews[i].put("movieID", max_movie_id.getInt(max_movie_id.getColumnIndex("MOVIE_ID")));
                     }
                     getActivity().getContentResolver().bulkInsert(Uri.parse(MovieTableConstants.BASE_CONTENT_URI+"/addMovie/review"), reviews);
                 }
+                max_movie_id.close();
 
                 Cursor allMovies = getActivity().getContentResolver().query(Uri.parse(MovieTableConstants.BASE_CONTENT_URI+"/allMovie"), null, null, null, null);
+                allMovies.moveToFirst();
                 for(int i=0;i<allMovies.getCount();i++)
                 {
                     Log.d(LOG_TAG,"MOVIES ==== "+allMovies.getInt(allMovies.getColumnIndex("heading")));

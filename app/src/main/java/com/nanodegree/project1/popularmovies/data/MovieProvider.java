@@ -17,7 +17,8 @@ import android.util.Log;
  */
 public class MovieProvider extends ContentProvider
 {
-    private MovieDBHelper movieDBHelper;
+    private static MovieDBHelper movieDBHelper;
+    private static SQLiteDatabase writeMovieDatabase;
     private String LOG_TAG = MovieProvider.class.getName();
     private static final int GET_ALL_MOVIE = 100;
     private static final int GET_MOVIE_WITH_ID = 200;
@@ -51,8 +52,21 @@ public class MovieProvider extends ContentProvider
 
     @Override
     public boolean onCreate() {
-        movieDBHelper = new MovieDBHelper(getContext());
+        getMovieDBHelper();
         return true;
+    }
+
+    public void getMovieDBHelper(){
+        if(movieDBHelper == null) {
+            movieDBHelper = new MovieDBHelper(getContext());
+        }
+    }
+
+    public static SQLiteDatabase getWriteMovieDatabase(){
+        if(writeMovieDatabase == null){
+            writeMovieDatabase = movieDBHelper.getWritableDatabase();
+        }
+        return writeMovieDatabase;
     }
 
     @Nullable
@@ -70,22 +84,22 @@ public class MovieProvider extends ContentProvider
                     MovieTableConstants.MOVIE_REVIEWS_TABLE + " movie_rev ",new String[] {"movie1.thumbnail, movie1.heading, movie1.synopsis, movie1.release_date, movie1.user_rating, movie_trail.name, movie_trail.key, movie_rev.author, movie_rev.content"},
                     "movie1._ID = movie_trail._ID AND movie1._ID = movie_rev._ID AND movie1._ID = "+String.valueOf(ContentUris.parseId(uri)),null,null,MovieTableConstants.ID,null);
 
-                movie = movieDBHelper.getReadableDatabase().rawQuery(getMovie, null);
-                movieDBHelper.close();
+                movie = getWriteMovieDatabase().rawQuery(getMovie, null);
+                //movieDBHelper.close();
             break;
 
             case GET_ALL_MOVIE:
 
                 getMovie = SQLiteQueryBuilder.buildQueryString(false,MovieTableConstants.MOVIE_TABLE + " movie1, ",new String[]{"movie1.thumbnail, movie1._ID, movie1.heading"},null,null,null,MovieTableConstants.ID,null );
-                movie = movieDBHelper.getReadableDatabase().rawQuery(getMovie, null);
-                movieDBHelper.close();
+                movie = getWriteMovieDatabase().rawQuery(getMovie, null);
+                //movieDBHelper.close();
             break;
 
             case GET_MAX_MOVIE_ID:
 
-                getMovie = "SELECT MAX(_ID) AS MOVIE_ID FROM MOVIE";
-                movie = movieDBHelper.getReadableDatabase().rawQuery(getMovie, null);
-                movieDBHelper.close();
+                getMovie = "SELECT MAX(_ID) AS MOVIE_ID,HEADING, SYNOPSIS, USER_RATING FROM MOVIE";
+                    movie = getWriteMovieDatabase().rawQuery(getMovie, null);
+                //movieDBHelper.close();
             break;
 
             default:
@@ -116,14 +130,12 @@ public class MovieProvider extends ContentProvider
 
                 //Insert Review info
 
-                SQLiteDatabase sqLiteDatabase = movieDBHelper.getWritableDatabase();
-
                 getMovie = SQLiteQueryBuilder.buildQueryString(false,MovieTableConstants.MOVIE_REVIEWS_TABLE,null,null,null,null,MovieTableConstants.MOVIE_REVIEW_ID,null);
-                Cursor movie_review_exist = sqLiteDatabase.rawQuery(getMovie, null);
+                Cursor movie_review_exist = getWriteMovieDatabase().rawQuery(getMovie, null);
 
                 if (movie_review_exist.getCount() > 0)
                 {
-                    movie_rev_id = sqLiteDatabase.rawQuery("SELECT MAX(_REVIEW_ID) AS MOVIE_REV_ID FROM MOVIE_REVIEWS;", null);
+                    movie_rev_id = getWriteMovieDatabase().rawQuery("SELECT MAX(_REVIEW_ID) AS MOVIE_REV_ID FROM MOVIE_REVIEWS;", null);
                     movie_review_id_insert = movie_rev_id.getInt(movie_rev_id.getColumnIndex("MOVIE_REV_ID")) + 1;
                 }
                 else
@@ -133,31 +145,33 @@ public class MovieProvider extends ContentProvider
 
                 for(int i=0;i < values.length;i++)
                 {
-                    sqLiteDatabase.beginTransaction();
+                    getWriteMovieDatabase().beginTransaction();
                     insertMovie = "INSERT INTO " + MovieTableConstants.MOVIE_REVIEWS_TABLE + " ( " + MovieTableConstants.MOVIE_REVIEW_ID + " , " + MovieTableConstants.ID + " , " + MovieTableConstants.AUTHOR + " , " +
                             MovieTableConstants.CONTENT + " ) VALUES ( " +movie_review_id_insert+ " , " +values[i].getAsInteger("movieID") + " , " + "'"+values[i].getAsString("author") +"'"+
                             "'"+values[i].getAsString("content")+"')";
                     String insertMov = "INSERT INTO " + MovieTableConstants.MOVIE_REVIEWS_TABLE + " ( " + MovieTableConstants.MOVIE_REVIEW_ID + " , " + MovieTableConstants.ID + " , " +
                             MovieTableConstants.AUTHOR + " , " +MovieTableConstants.CONTENT + " ) VALUES (?,?,?,?)";
-                    SQLiteStatement sqLiteStatement = sqLiteDatabase.compileStatement(insertMov);
+                    SQLiteStatement sqLiteStatement = getWriteMovieDatabase().compileStatement(insertMov);
                     sqLiteStatement.bindLong(1,movie_review_id_insert);
                     sqLiteStatement.bindLong(2,values[i].getAsInteger("movieID"));
                     sqLiteStatement.bindString(3,values[i].getAsString("author"));
                     sqLiteStatement.bindString(4,values[i].getAsString("content"));
-                    if(sqLiteStatement.executeInsert() != 1)
+                    if(sqLiteStatement.executeInsert() == -1)
                     {
-                        sqLiteDatabase.endTransaction();
+                        getWriteMovieDatabase().endTransaction();
                     }
                     else
                     {
-                        sqLiteDatabase.setTransactionSuccessful();
+                        getWriteMovieDatabase().setTransactionSuccessful();
+                        getContext().getContentResolver().notifyChange(uri,null);
                         movie_review_id_insert++;
                     }
-                    //sqLiteDatabase.rawQuery(insertMovie, null);
+                    sqLiteStatement.close();
+                    //getWriteMovieDatabase().rawQuery(insertMovie, null);
                 }
 
                 getMovie = SQLiteQueryBuilder.buildQueryString(false,MovieTableConstants.MOVIE_REVIEWS_TABLE,null,null,null,null,MovieTableConstants.MOVIE_REVIEW_ID,null);
-                Cursor movie_exist = sqLiteDatabase.rawQuery(getMovie, null);
+                Cursor movie_exist = getWriteMovieDatabase().rawQuery(getMovie, null);
                 movie_exist.moveToFirst();
                 while(movie_exist.moveToNext())
                 {
@@ -165,7 +179,7 @@ public class MovieProvider extends ContentProvider
                     Log.d(LOG_TAG,"Review Author === "+movie_exist.getString(movie_exist.getColumnIndex(MovieTableConstants.AUTHOR)));
                 }
                 movie_exist.close();
-                sqLiteDatabase.close();
+                //getWriteMovieDatabase().close();
 
                 break;
 
@@ -173,16 +187,16 @@ public class MovieProvider extends ContentProvider
 
                 //Insert Trailer info
 
-                sqLiteDatabase = movieDBHelper.getWritableDatabase();
                 Cursor movie_trail_id;
 
                 getMovie = SQLiteQueryBuilder.buildQueryString(false,MovieTableConstants.MOVIE_TRAILERS_TABLE,null,null,null,null,MovieTableConstants.MOVIE_TRAILER_ID,null);
-                Cursor movie_trailer_exist = sqLiteDatabase.rawQuery(getMovie, null);
+                Cursor movie_trailer_exist = getWriteMovieDatabase().rawQuery(getMovie, null);
+                movie_trailer_exist.moveToFirst();
                 int movie_trailer_id_insert = -1;
 
                 if (movie_trailer_exist.getCount() > 0)
                 {
-                    movie_trail_id = sqLiteDatabase.rawQuery("SELECT MAX(_TRAILER_ID) AS MOVIE_TRAIL_ID FROM MOVIE_TRAILERS;", null);
+                    movie_trail_id = getWriteMovieDatabase().rawQuery("SELECT MAX(_TRAILER_ID) AS MOVIE_TRAIL_ID FROM MOVIE_TRAILERS;", null);
                     movie_trailer_id_insert = movie_trail_id.getInt(movie_trail_id.getColumnIndex("MOVIE_TRAIL_ID")) + 1;
                 }
                 else
@@ -192,30 +206,32 @@ public class MovieProvider extends ContentProvider
 
                 for(int i=0;i<values.length;i++)
                 {
-                    sqLiteDatabase.beginTransaction();
+                    getWriteMovieDatabase().beginTransaction();
                     insertMovie = "INSERT INTO " + MovieTableConstants.MOVIE_TRAILERS_TABLE + " ( " + MovieTableConstants.MOVIE_TRAILER_ID + " , " + MovieTableConstants.ID + " , " + MovieTableConstants.KEY + " , " +
                             MovieTableConstants.NAME + " ) VALUES ( " +movie_trailer_id_insert + " , " + values[i].getAsInteger("movieID") + " , " + "'"+ values[i].getAsString("key")+"'"
                             +"'"+ values[i].getAsString("name")+"')";
                     String insertMov = "INSERT INTO " + MovieTableConstants.MOVIE_TRAILERS_TABLE + " ( " + MovieTableConstants.MOVIE_TRAILER_ID + " , " + MovieTableConstants.ID + " , " + MovieTableConstants.KEY + " , " +
                             MovieTableConstants.NAME + " ) VALUES (?, ?, ?, ?)";
-                    SQLiteStatement sqLiteStatement = sqLiteDatabase.compileStatement(insertMov);
+                    SQLiteStatement sqLiteStatement = getWriteMovieDatabase().compileStatement(insertMov);
                     sqLiteStatement.bindLong(1, movie_trailer_id_insert);
                     sqLiteStatement.bindLong(2, values[i].getAsInteger("movieID"));
                     sqLiteStatement.bindString(3, values[i].getAsString("key"));
                     sqLiteStatement.bindString(4, values[i].getAsString("name"));
-                    if(sqLiteStatement.executeInsert() != 1)
+                    if(sqLiteStatement.executeInsert() == -1)
                     {
-                        sqLiteDatabase.endTransaction();
+                        getWriteMovieDatabase().endTransaction();
                     }
                     else
                     {
-                        sqLiteDatabase.setTransactionSuccessful();
+                        getWriteMovieDatabase().setTransactionSuccessful();
+                        getContext().getContentResolver().notifyChange(uri,null);
                         movie_trailer_id_insert++;
                     }
+                    sqLiteStatement.close();
                 }
 
                 getMovie = SQLiteQueryBuilder.buildQueryString(false,MovieTableConstants.MOVIE_TRAILERS_TABLE,null,null,null,null,MovieTableConstants.MOVIE_TRAILER_ID,null);
-                movie_exist = sqLiteDatabase.rawQuery(getMovie, null);
+                movie_exist = getWriteMovieDatabase().rawQuery(getMovie, null);
                 movie_exist.moveToFirst();
                 while(movie_exist.moveToNext())
                 {
@@ -223,7 +239,7 @@ public class MovieProvider extends ContentProvider
                     Log.d(LOG_TAG,"Trailer Name === "+movie_exist.getString(movie_exist.getColumnIndex(MovieTableConstants.NAME)));
                 }
                 movie_exist.close();
-                sqLiteDatabase.close();
+                //getWriteMovieDatabase().close();
 
                 break;
         }
@@ -241,9 +257,9 @@ public class MovieProvider extends ContentProvider
         {
             case INSERT_MOVIE:
 
-                SQLiteDatabase sqLiteDatabase = movieDBHelper.getWritableDatabase();
+                Log.d(LOG_TAG,"inserting Movie");
                 getMovie = SQLiteQueryBuilder.buildQueryString(false,MovieTableConstants.MOVIE_TABLE + " movie1 ",null,null,null,null,MovieTableConstants.ID,null );
-                Cursor movie_exist = sqLiteDatabase.rawQuery(getMovie, null);
+                Cursor movie_exist = getWriteMovieDatabase().rawQuery(getMovie, null);
                 boolean present = false;
                 if(movie_exist.getCount() > 0)
                 {
@@ -255,7 +271,7 @@ public class MovieProvider extends ContentProvider
 
                 if(present)
                 {
-                    movie_id = sqLiteDatabase.rawQuery("SELECT MAX(_ID) AS MOVIE_ID FROM MOVIE;",null);
+                    movie_id = getWriteMovieDatabase().rawQuery("SELECT MAX(_ID) AS MOVIE_ID FROM MOVIE;",null);
                     movie_id_inserted = movie_id.getInt(movie_id.getColumnIndex("MOVIE_ID"))+1;
                 }
                 else
@@ -263,7 +279,7 @@ public class MovieProvider extends ContentProvider
                     movie_id_inserted = MOVIE_ID;
                 }
 
-                sqLiteDatabase.beginTransaction();
+                getWriteMovieDatabase().beginTransaction();
                 insertMovie = "INSERT INTO "+MovieTableConstants.MOVIE_TABLE+" ( "+MovieTableConstants.ID+" , "+MovieTableConstants.HEADING+" , "+MovieTableConstants.THUMBNAIL+" , "+
                         MovieTableConstants.RELEASE_DATE+" , "+MovieTableConstants.USER_RATING+" , "+MovieTableConstants.SYNOPSIS+" ) VALUES ( "+movie_id_inserted+", "+"'"+contentValues.getAsString("heading")
                         +"'"+" , "+"'"+contentValues.getAsByteArray("thumbnail")+"'"+" , "+"'"+contentValues.getAsString("releaseDate")+"'"+" , "+contentValues.getAsDouble("userRating")+" , "
@@ -272,7 +288,7 @@ public class MovieProvider extends ContentProvider
                 String insertMov = "INSERT INTO "+MovieTableConstants.MOVIE_TABLE+" ( "+MovieTableConstants.ID+" , "+MovieTableConstants.MOVIE_ID+" , "+MovieTableConstants.HEADING+" , "+
                         MovieTableConstants.THUMBNAIL+" , "+MovieTableConstants.RELEASE_DATE+" , "+MovieTableConstants.USER_RATING+" , "+MovieTableConstants.SYNOPSIS+
                         " ) VALUES (?,?,?,?,?,?,? )";
-                SQLiteStatement sqLiteStatement = sqLiteDatabase.compileStatement(insertMov);
+                SQLiteStatement sqLiteStatement = getWriteMovieDatabase().compileStatement(insertMov);
 
                 sqLiteStatement.bindLong(1, movie_id_inserted);
                 sqLiteStatement.bindLong(2, contentValues.getAsLong("movieID"));
@@ -281,17 +297,21 @@ public class MovieProvider extends ContentProvider
                 sqLiteStatement.bindString(5, contentValues.getAsString("releaseDate"));
                 sqLiteStatement.bindDouble(6, contentValues.getAsDouble("userRating"));
                 sqLiteStatement.bindString(7, contentValues.getAsString("synopsis"));
-                if(sqLiteStatement.executeInsert() != 1)
+                if(sqLiteStatement.executeInsert() == -1)
                 {
-                    sqLiteDatabase.endTransaction();
+                    Log.d(LOG_TAG,"not inserted...some error");
+                    getWriteMovieDatabase().endTransaction();
                 }
                 else
                 {
-                    sqLiteDatabase.setTransactionSuccessful();
+                    Log.d(LOG_TAG,"inserted!!== > "+movie_id_inserted);
+                    getWriteMovieDatabase().setTransactionSuccessful();
+                    getContext().getContentResolver().notifyChange(uri,null);
                 }
+                sqLiteStatement.close();
 
                 getMovie = SQLiteQueryBuilder.buildQueryString(false,MovieTableConstants.MOVIE_TABLE,null,null,null,null,MovieTableConstants.ID,null );
-                movie_exist = sqLiteDatabase.rawQuery(getMovie, null);
+                movie_exist = getWriteMovieDatabase().rawQuery(getMovie, null);
                 movie_exist.moveToFirst();
                 while(movie_exist.moveToNext())
                 {
@@ -300,7 +320,7 @@ public class MovieProvider extends ContentProvider
                     Log.d(LOG_TAG,"Movie ID === "+movie_exist.getLong(movie_exist.getColumnIndex(MovieTableConstants.MOVIE_ID)));
                 }
                 movie_exist.close();
-                sqLiteDatabase.close();
+                //getWriteMovieDatabase().close();
 
                 break;
         }
@@ -318,17 +338,17 @@ public class MovieProvider extends ContentProvider
                 SQLiteDatabase sqLiteDatabase = movieDBHelper.getWritableDatabase();
                 //Delete review
                 String delete_movie = "DELETE FROM "+MovieTableConstants.MOVIE_REVIEWS_TABLE+" WHERE "+MovieTableConstants.ID+" = "+ContentUris.parseId(uri);
-                sqLiteDatabase.rawQuery(delete_movie,null);
+                getWriteMovieDatabase().rawQuery(delete_movie,null);
 
                 //Delete trailer
                 delete_movie = "DELETE FROM "+MovieTableConstants.MOVIE_TRAILERS_TABLE+" WHERE "+MovieTableConstants.ID+" = "+ContentUris.parseId(uri);
-                sqLiteDatabase.rawQuery(delete_movie,null);
+                getWriteMovieDatabase().rawQuery(delete_movie,null);
 
                 //Delete movie
                 delete_movie = "DELETE FROM "+MovieTableConstants.MOVIE_TABLE+" WHERE "+MovieTableConstants.ID+" = "+ContentUris.parseId(uri);
-                sqLiteDatabase.rawQuery(delete_movie,null);
+                getWriteMovieDatabase().rawQuery(delete_movie,null);
 
-                sqLiteDatabase.close();
+                //getWriteMovieDatabase().close();
                 break;
 
             case DROP_MOVIE_TABLE:
@@ -344,7 +364,7 @@ public class MovieProvider extends ContentProvider
                         MovieTableConstants.THUMBNAIL + " BLOB "+
                         " ); ";
                 Log.d(LOG_TAG,CREATE_TABLE);
-                sqLiteDatabase.execSQL(CREATE_TABLE);
+                getWriteMovieDatabase().execSQL(CREATE_TABLE);
                 Log.d(LOG_TAG, "Created table Movie..");
                 break;
         }
