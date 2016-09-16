@@ -59,7 +59,7 @@ public class MovieDBHelper extends SQLiteOpenHelper
         sqLiteDatabase.execSQL(CREATE_TABLE_TRAILERS);
 
         String CREATE_TABLE_REVIEWS = "CREATE TABLE " + MovieTableConstants.MOVIE_REVIEWS_TABLE + " ( " +
-                MovieTableConstants.MOVIE_REVIEWS_TABLE + " INTEGER NOT NULL PRIMARY KEY , " +
+                MovieTableConstants.MOVIE_REVIEW_ID + " INTEGER NOT NULL PRIMARY KEY , " +
                 MovieTableConstants.ID + " INTEGER NOT NULL, "+
                 MovieTableConstants.AUTHOR + " TEXT, "+
                 MovieTableConstants.CONTENT + " TEXT, "+

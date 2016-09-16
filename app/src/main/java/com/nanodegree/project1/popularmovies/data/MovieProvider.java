@@ -79,7 +79,7 @@ public class MovieProvider extends ContentProvider
         {
             case GET_MOVIE_WITH_ID:
 
-                getMovie = SQLiteQueryBuilder.buildQueryString(false,MovieTableConstants.MOVIE_TABLE + " movie1, " +
+                getMovie = SQLiteQueryBuilder.buildQueryString(false,MovieTableConstants.MOVIE_TABLE + " movie1 " +
                     MovieTableConstants.MOVIE_TRAILERS_TABLE + " movie_trail, " +
                     MovieTableConstants.MOVIE_REVIEWS_TABLE + " movie_rev ",new String[] {"movie1.thumbnail, movie1.heading, movie1.synopsis, movie1.release_date, movie1.user_rating, movie_trail.name, movie_trail.key, movie_rev.author, movie_rev.content"},
                     "movie1._ID = movie_trail._ID AND movie1._ID = movie_rev._ID AND movie1._ID = "+String.valueOf(ContentUris.parseId(uri)),null,null,MovieTableConstants.ID,null);
@@ -90,7 +90,7 @@ public class MovieProvider extends ContentProvider
 
             case GET_ALL_MOVIE:
 
-                getMovie = SQLiteQueryBuilder.buildQueryString(false,MovieTableConstants.MOVIE_TABLE + " movie1, ",new String[]{"movie1.thumbnail, movie1._ID, movie1.heading"},null,null,null,MovieTableConstants.ID,null );
+                getMovie = SQLiteQueryBuilder.buildQueryString(false,MovieTableConstants.MOVIE_TABLE + " movie1 ",null,null,null,null,MovieTableConstants.ID,null );
                 movie = getWriteMovieDatabase().rawQuery(getMovie, null);
                 //movieDBHelper.close();
             break;
@@ -133,9 +133,15 @@ public class MovieProvider extends ContentProvider
                 getMovie = SQLiteQueryBuilder.buildQueryString(false,MovieTableConstants.MOVIE_REVIEWS_TABLE,null,null,null,null,MovieTableConstants.MOVIE_REVIEW_ID,null);
                 Cursor movie_review_exist = getWriteMovieDatabase().rawQuery(getMovie, null);
 
+                if (movie_review_exist.getCount() > 0){
+                    for(int i=0;i<movie_review_exist.getColumnNames().length;i++){
+                        Log.d(LOG_TAG," Column name === > "+movie_review_exist.getColumnNames()[i]);
+                    }
+                }
                 if (movie_review_exist.getCount() > 0)
                 {
                     movie_rev_id = getWriteMovieDatabase().rawQuery("SELECT MAX(_REVIEW_ID) AS MOVIE_REV_ID FROM MOVIE_REVIEWS;", null);
+                    movie_rev_id.moveToFirst();
                     movie_review_id_insert = movie_rev_id.getInt(movie_rev_id.getColumnIndex("MOVIE_REV_ID")) + 1;
                 }
                 else
@@ -145,10 +151,6 @@ public class MovieProvider extends ContentProvider
 
                 for(int i=0;i < values.length;i++)
                 {
-                    getWriteMovieDatabase().beginTransaction();
-                    insertMovie = "INSERT INTO " + MovieTableConstants.MOVIE_REVIEWS_TABLE + " ( " + MovieTableConstants.MOVIE_REVIEW_ID + " , " + MovieTableConstants.ID + " , " + MovieTableConstants.AUTHOR + " , " +
-                            MovieTableConstants.CONTENT + " ) VALUES ( " +movie_review_id_insert+ " , " +values[i].getAsInteger("movieID") + " , " + "'"+values[i].getAsString("author") +"'"+
-                            "'"+values[i].getAsString("content")+"')";
                     String insertMov = "INSERT INTO " + MovieTableConstants.MOVIE_REVIEWS_TABLE + " ( " + MovieTableConstants.MOVIE_REVIEW_ID + " , " + MovieTableConstants.ID + " , " +
                             MovieTableConstants.AUTHOR + " , " +MovieTableConstants.CONTENT + " ) VALUES (?,?,?,?)";
                     SQLiteStatement sqLiteStatement = getWriteMovieDatabase().compileStatement(insertMov);
@@ -162,24 +164,24 @@ public class MovieProvider extends ContentProvider
                     }
                     else
                     {
-                        getWriteMovieDatabase().setTransactionSuccessful();
                         getContext().getContentResolver().notifyChange(uri,null);
                         movie_review_id_insert++;
                     }
                     sqLiteStatement.close();
-                    //getWriteMovieDatabase().rawQuery(insertMovie, null);
                 }
 
-                getMovie = SQLiteQueryBuilder.buildQueryString(false,MovieTableConstants.MOVIE_REVIEWS_TABLE,null,null,null,null,MovieTableConstants.MOVIE_REVIEW_ID,null);
+                getMovie = SQLiteQueryBuilder.buildQueryString(false,MovieTableConstants.MOVIE_REVIEWS_TABLE,new String[]{MovieTableConstants.MOVIE_REVIEW_ID, MovieTableConstants.AUTHOR, MovieTableConstants.ID},
+                        null,null,null,MovieTableConstants.MOVIE_REVIEW_ID,null);
                 Cursor movie_exist = getWriteMovieDatabase().rawQuery(getMovie, null);
                 movie_exist.moveToFirst();
-                while(movie_exist.moveToNext())
-                {
-                    Log.d(LOG_TAG,"Review ID === "+movie_exist.getInt(movie_exist.getColumnIndex(MovieTableConstants.MOVIE_REVIEW_ID)));
-                    Log.d(LOG_TAG,"Review Author === "+movie_exist.getString(movie_exist.getColumnIndex(MovieTableConstants.AUTHOR)));
+                if(movie_exist.getCount() > 0) {
+                    do {
+                        Log.d(LOG_TAG, "Review ID === " + movie_exist.getInt(movie_exist.getColumnIndex(MovieTableConstants.MOVIE_REVIEW_ID)));
+                        Log.d(LOG_TAG, "Review Author === " + movie_exist.getString(movie_exist.getColumnIndex(MovieTableConstants.AUTHOR)));
+                        Log.d(LOG_TAG, "Review Movie ID === " + movie_exist.getInt(movie_exist.getColumnIndex(MovieTableConstants.ID)));
+                    }while (movie_exist.moveToNext());
                 }
                 movie_exist.close();
-                //getWriteMovieDatabase().close();
 
                 break;
 
@@ -189,7 +191,8 @@ public class MovieProvider extends ContentProvider
 
                 Cursor movie_trail_id;
 
-                getMovie = SQLiteQueryBuilder.buildQueryString(false,MovieTableConstants.MOVIE_TRAILERS_TABLE,null,null,null,null,MovieTableConstants.MOVIE_TRAILER_ID,null);
+                getMovie = SQLiteQueryBuilder.buildQueryString(false,MovieTableConstants.MOVIE_TRAILERS_TABLE,new String[]{MovieTableConstants.KEY,MovieTableConstants.NAME},
+                        null,null,null,MovieTableConstants.MOVIE_TRAILER_ID,null);
                 Cursor movie_trailer_exist = getWriteMovieDatabase().rawQuery(getMovie, null);
                 movie_trailer_exist.moveToFirst();
                 int movie_trailer_id_insert = -1;
@@ -197,6 +200,7 @@ public class MovieProvider extends ContentProvider
                 if (movie_trailer_exist.getCount() > 0)
                 {
                     movie_trail_id = getWriteMovieDatabase().rawQuery("SELECT MAX(_TRAILER_ID) AS MOVIE_TRAIL_ID FROM MOVIE_TRAILERS;", null);
+                    movie_trail_id.moveToFirst();
                     movie_trailer_id_insert = movie_trail_id.getInt(movie_trail_id.getColumnIndex("MOVIE_TRAIL_ID")) + 1;
                 }
                 else
@@ -206,10 +210,6 @@ public class MovieProvider extends ContentProvider
 
                 for(int i=0;i<values.length;i++)
                 {
-                    getWriteMovieDatabase().beginTransaction();
-                    insertMovie = "INSERT INTO " + MovieTableConstants.MOVIE_TRAILERS_TABLE + " ( " + MovieTableConstants.MOVIE_TRAILER_ID + " , " + MovieTableConstants.ID + " , " + MovieTableConstants.KEY + " , " +
-                            MovieTableConstants.NAME + " ) VALUES ( " +movie_trailer_id_insert + " , " + values[i].getAsInteger("movieID") + " , " + "'"+ values[i].getAsString("key")+"'"
-                            +"'"+ values[i].getAsString("name")+"')";
                     String insertMov = "INSERT INTO " + MovieTableConstants.MOVIE_TRAILERS_TABLE + " ( " + MovieTableConstants.MOVIE_TRAILER_ID + " , " + MovieTableConstants.ID + " , " + MovieTableConstants.KEY + " , " +
                             MovieTableConstants.NAME + " ) VALUES (?, ?, ?, ?)";
                     SQLiteStatement sqLiteStatement = getWriteMovieDatabase().compileStatement(insertMov);
@@ -223,20 +223,21 @@ public class MovieProvider extends ContentProvider
                     }
                     else
                     {
-                        getWriteMovieDatabase().setTransactionSuccessful();
-                        getContext().getContentResolver().notifyChange(uri,null);
                         movie_trailer_id_insert++;
                     }
                     sqLiteStatement.close();
                 }
 
-                getMovie = SQLiteQueryBuilder.buildQueryString(false,MovieTableConstants.MOVIE_TRAILERS_TABLE,null,null,null,null,MovieTableConstants.MOVIE_TRAILER_ID,null);
+                getMovie = SQLiteQueryBuilder.buildQueryString(false,MovieTableConstants.MOVIE_TRAILERS_TABLE,new String[]{MovieTableConstants.MOVIE_TRAILER_ID,MovieTableConstants.NAME,MovieTableConstants.ID},
+                        null,null,null,MovieTableConstants.MOVIE_TRAILER_ID,null);
                 movie_exist = getWriteMovieDatabase().rawQuery(getMovie, null);
                 movie_exist.moveToFirst();
-                while(movie_exist.moveToNext())
-                {
-                    Log.d(LOG_TAG,"Trailer ID === "+movie_exist.getInt(movie_exist.getColumnIndex(MovieTableConstants.MOVIE_TRAILER_ID)));
-                    Log.d(LOG_TAG,"Trailer Name === "+movie_exist.getString(movie_exist.getColumnIndex(MovieTableConstants.NAME)));
+                if(movie_exist.getCount() > 0) {
+                    do {
+                        Log.d(LOG_TAG, "Trailer ID === " + movie_exist.getInt(movie_exist.getColumnIndex(MovieTableConstants.MOVIE_TRAILER_ID)));
+                        Log.d(LOG_TAG, "Trailer Name === " + movie_exist.getString(movie_exist.getColumnIndex(MovieTableConstants.NAME)));
+                        Log.d(LOG_TAG, "Trailer Movie ID === " + movie_exist.getInt(movie_exist.getColumnIndex(MovieTableConstants.ID)));
+                    }while (movie_exist.moveToNext());
                 }
                 movie_exist.close();
                 //getWriteMovieDatabase().close();
@@ -272,6 +273,7 @@ public class MovieProvider extends ContentProvider
                 if(present)
                 {
                     movie_id = getWriteMovieDatabase().rawQuery("SELECT MAX(_ID) AS MOVIE_ID FROM MOVIE;",null);
+                    movie_id.moveToFirst();
                     movie_id_inserted = movie_id.getInt(movie_id.getColumnIndex("MOVIE_ID"))+1;
                 }
                 else
@@ -280,10 +282,6 @@ public class MovieProvider extends ContentProvider
                 }
 
                 getWriteMovieDatabase().beginTransaction();
-                insertMovie = "INSERT INTO "+MovieTableConstants.MOVIE_TABLE+" ( "+MovieTableConstants.ID+" , "+MovieTableConstants.HEADING+" , "+MovieTableConstants.THUMBNAIL+" , "+
-                        MovieTableConstants.RELEASE_DATE+" , "+MovieTableConstants.USER_RATING+" , "+MovieTableConstants.SYNOPSIS+" ) VALUES ( "+movie_id_inserted+", "+"'"+contentValues.getAsString("heading")
-                        +"'"+" , "+"'"+contentValues.getAsByteArray("thumbnail")+"'"+" , "+"'"+contentValues.getAsString("releaseDate")+"'"+" , "+contentValues.getAsDouble("userRating")+" , "
-                        +"'"+contentValues.getAsString("synopsis")+"')";
 
                 String insertMov = "INSERT INTO "+MovieTableConstants.MOVIE_TABLE+" ( "+MovieTableConstants.ID+" , "+MovieTableConstants.MOVIE_ID+" , "+MovieTableConstants.HEADING+" , "+
                         MovieTableConstants.THUMBNAIL+" , "+MovieTableConstants.RELEASE_DATE+" , "+MovieTableConstants.USER_RATING+" , "+MovieTableConstants.SYNOPSIS+
@@ -305,22 +303,22 @@ public class MovieProvider extends ContentProvider
                 else
                 {
                     Log.d(LOG_TAG,"inserted!!== > "+movie_id_inserted);
-                    getWriteMovieDatabase().setTransactionSuccessful();
-                    getContext().getContentResolver().notifyChange(uri,null);
                 }
                 sqLiteStatement.close();
 
-                getMovie = SQLiteQueryBuilder.buildQueryString(false,MovieTableConstants.MOVIE_TABLE,null,null,null,null,MovieTableConstants.ID,null );
+                getMovie = SQLiteQueryBuilder.buildQueryString(false,MovieTableConstants.MOVIE_TABLE,new String[]{MovieTableConstants.ID, MovieTableConstants.HEADING,MovieTableConstants.MOVIE_ID},
+                        null,null,null,MovieTableConstants.ID,null );
                 movie_exist = getWriteMovieDatabase().rawQuery(getMovie, null);
                 movie_exist.moveToFirst();
-                while(movie_exist.moveToNext())
-                {
-                    Log.d(LOG_TAG,"ID === "+movie_exist.getInt(movie_exist.getColumnIndex(MovieTableConstants.ID)));
-                    Log.d(LOG_TAG,"Heading === "+movie_exist.getString(movie_exist.getColumnIndex(MovieTableConstants.HEADING)));
-                    Log.d(LOG_TAG,"Movie ID === "+movie_exist.getLong(movie_exist.getColumnIndex(MovieTableConstants.MOVIE_ID)));
+                Log.d(LOG_TAG,"Count == "+movie_exist.getCount());
+                if(movie_exist.getCount() > 0) {
+                    do {
+                        Log.d(LOG_TAG, "ID === " + movie_exist.getInt(movie_exist.getColumnIndex(MovieTableConstants.ID)));
+                        Log.d(LOG_TAG, "Heading === " + movie_exist.getString(movie_exist.getColumnIndex(MovieTableConstants.HEADING)));
+                        Log.d(LOG_TAG, "Movie ID === " + movie_exist.getLong(movie_exist.getColumnIndex(MovieTableConstants.MOVIE_ID)));
+                    } while (movie_exist.moveToNext());
                 }
                 movie_exist.close();
-                //getWriteMovieDatabase().close();
 
                 break;
         }
@@ -335,37 +333,58 @@ public class MovieProvider extends ContentProvider
         {
             case DELETE_MOVIE:
 
-                SQLiteDatabase sqLiteDatabase = movieDBHelper.getWritableDatabase();
+                long movieID = ContentUris.parseId(uri);
+                Log.d(LOG_TAG,"Deleting movie..."+movieID);
+
                 //Delete review
-                String delete_movie = "DELETE FROM "+MovieTableConstants.MOVIE_REVIEWS_TABLE+" WHERE "+MovieTableConstants.ID+" = "+ContentUris.parseId(uri);
-                getWriteMovieDatabase().rawQuery(delete_movie,null);
+                String delete_movie = "DELETE FROM "+MovieTableConstants.MOVIE_REVIEWS_TABLE+" WHERE "+MovieTableConstants.ID+" = ?";
+                SQLiteStatement sqLiteStatement = getWriteMovieDatabase().compileStatement(delete_movie);
+                sqLiteStatement.bindLong(1, movieID);
+                if(sqLiteStatement.executeUpdateDelete() == 0){
+                    Log.d(LOG_TAG, "No rows deleted.....");
+                }
+                else{
+                    Log.d(LOG_TAG,"Rows were deleted");
+                }
 
                 //Delete trailer
-                delete_movie = "DELETE FROM "+MovieTableConstants.MOVIE_TRAILERS_TABLE+" WHERE "+MovieTableConstants.ID+" = "+ContentUris.parseId(uri);
-                getWriteMovieDatabase().rawQuery(delete_movie,null);
+                delete_movie = "DELETE FROM "+MovieTableConstants.MOVIE_TRAILERS_TABLE+" WHERE "+MovieTableConstants.ID+" = ?";
+                sqLiteStatement = getWriteMovieDatabase().compileStatement(delete_movie);
+                sqLiteStatement.bindLong(1, movieID);
+                if(sqLiteStatement.executeUpdateDelete() == 0){
+                    Log.d(LOG_TAG, "No Trailers deleted.....");
+                }
+                else{
+                    Log.d(LOG_TAG,"Trailers were deleted");
+                }
 
                 //Delete movie
-                delete_movie = "DELETE FROM "+MovieTableConstants.MOVIE_TABLE+" WHERE "+MovieTableConstants.ID+" = "+ContentUris.parseId(uri);
-                getWriteMovieDatabase().rawQuery(delete_movie,null);
+                delete_movie = "DELETE FROM "+MovieTableConstants.MOVIE_TABLE+" WHERE "+MovieTableConstants.ID+" = ?";
+                sqLiteStatement = getWriteMovieDatabase().compileStatement(delete_movie);
+                sqLiteStatement.bindLong(1, movieID);
+                if(sqLiteStatement.executeUpdateDelete() == 0){
+                    Log.d(LOG_TAG, "No Reviews deleted.....");
+                }
+                else{
+                    Log.d(LOG_TAG,"Reviews were deleted");
+                }
 
                 //getWriteMovieDatabase().close();
                 break;
 
             case DROP_MOVIE_TABLE:
 
-                sqLiteDatabase = movieDBHelper.getWritableDatabase();
-                String CREATE_TABLE = "CREATE TABLE "+MovieTableConstants.MOVIE_TABLE+" ( "+
-                        MovieTableConstants.ID + " INTEGER NOT NULL PRIMARY KEY , "+
-                        MovieTableConstants.MOVIE_ID + " INTEGER NOT NULL , " +
-                        MovieTableConstants.HEADING + " TEXT, " +
-                        MovieTableConstants.RELEASE_DATE + " TEXT, " +
-                        MovieTableConstants.USER_RATING + " INTEGER, " +
-                        MovieTableConstants.SYNOPSIS + " TEXT, "+
-                        MovieTableConstants.THUMBNAIL + " BLOB "+
+                /*String CREATE_TABLE_REVIEWS = "CREATE TABLE " + MovieTableConstants.MOVIE_REVIEWS_TABLE + " ( " +
+                        MovieTableConstants.MOVIE_REVIEW_ID + " INTEGER NOT NULL PRIMARY KEY , " +
+                        MovieTableConstants.ID + " INTEGER NOT NULL, "+
+                        MovieTableConstants.AUTHOR + " TEXT, "+
+                        MovieTableConstants.CONTENT + " TEXT, "+
+                        "FOREIGN KEY ( "+MovieTableConstants.ID +" ) "+" REFERENCES "+MovieTableConstants.MOVIE_TABLE+" ( "+MovieTableConstants.ID +" ) "+
                         " ); ";
-                Log.d(LOG_TAG,CREATE_TABLE);
-                getWriteMovieDatabase().execSQL(CREATE_TABLE);
-                Log.d(LOG_TAG, "Created table Movie..");
+                Log.d(LOG_TAG,CREATE_TABLE_REVIEWS);
+                getWriteMovieDatabase().execSQL(CREATE_TABLE_REVIEWS);
+                Log.d(LOG_TAG, "Created table Movie Review..");*/
+
                 break;
         }
         return 0;

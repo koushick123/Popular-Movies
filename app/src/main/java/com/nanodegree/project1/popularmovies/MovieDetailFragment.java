@@ -26,6 +26,7 @@ import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TableRow;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.nanodegree.project1.popularmovies.data.MovieTableConstants;
 import com.squareup.picasso.Picasso;
@@ -51,6 +52,9 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
     ImageView favStar;
     LinearLayout movieDetails;
     Movie trailerAndReviewInfoMovie;
+    Boolean addedToFav;
+    int dbMovieIdInsertDelete = -1;
+    int movieId;
 
     @Nullable
     @Override
@@ -77,6 +81,8 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
         }
         else
         {
+            addedToFav = savedInstanceState.getBoolean("addedToFav");
+            dbMovieIdInsertDelete = savedInstanceState.getInt("selectedDbMovieId");
             movieBundle = savedInstanceState.getParcelable("movieInfo");
             trailerAndReviewInfoMovie = savedInstanceState.getParcelable("movieTrailer");
         }
@@ -117,8 +123,6 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
         @Override
         public void onClick(View view)
         {
-            //getActivity().getContentResolver().delete(Uri.parse(MovieTableConstants.BASE_CONTENT_URI+"/dropMovie/"),null,null);
-            //Toast.makeText(getActivity().getApplicationContext(),"Add as fav",Toast.LENGTH_LONG).show();
             if(favStar.getDrawable().getConstantState() == getResources().getDrawable(R.drawable.ic_star_border_black_24dp).getConstantState())
             {
                 //Get Movie details
@@ -178,20 +182,35 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
                     }
                     getActivity().getContentResolver().bulkInsert(Uri.parse(MovieTableConstants.BASE_CONTENT_URI+"/addMovie/review"), reviews);
                 }
+                dbMovieIdInsertDelete = max_movie_id.getInt(max_movie_id.getColumnIndex("MOVIE_ID"));
+                Log.d(LOG_TAG,"Added movie ID "+dbMovieIdInsertDelete+" to fav");
                 max_movie_id.close();
 
-                Cursor allMovies = getActivity().getContentResolver().query(Uri.parse(MovieTableConstants.BASE_CONTENT_URI+"/allMovie"), null, null, null, null);
+                Cursor allMovies = getActivity().getContentResolver().query(Uri.parse(MovieTableConstants.BASE_CONTENT_URI+"/allMovies"), null, null, null, null);
                 allMovies.moveToFirst();
-                for(int i=0;i<allMovies.getCount();i++)
-                {
-                    Log.d(LOG_TAG,"MOVIES ==== "+allMovies.getInt(allMovies.getColumnIndex("heading")));
+                if(allMovies.getCount() > 0) {
+                    do
+                    {
+                        Log.d(LOG_TAG, "MOVIES ==== " + allMovies.getString(allMovies.getColumnIndex("heading")));
+                        Log.d(LOG_TAG, "MOVIES ID ==== " + allMovies.getInt(allMovies.getColumnIndex("_ID")));
+                    }while(allMovies.moveToNext());
                 }
 
+                Toast.makeText(getActivity().getApplicationContext(),"Added "+((Movie)movieBundle.getParcelable("movieDetail")).getOriginalTitle().toUpperCase()+" to favorites",Toast.LENGTH_SHORT).show();
                 favStar.setImageResource(R.drawable.ic_grade_black_24dp);
+                addedToFav = true;
             }
             else
             {
-                favStar.setImageResource(R.drawable.ic_star_border_black_24dp);
+                if(dbMovieIdInsertDelete != -1) {
+                    Log.d(LOG_TAG,"Deleting movie id "+dbMovieIdInsertDelete);
+                    int no_of_records = getActivity().getContentResolver().delete(Uri.parse(MovieTableConstants.BASE_CONTENT_URI + "/deleteMovie/" + dbMovieIdInsertDelete), null, null);
+                    Log.d(LOG_TAG, "No of records deleted == >" + no_of_records);
+                    Toast.makeText(getActivity().getApplicationContext(), "Deleted " + ((Movie) movieBundle.getParcelable("movieDetail")).getOriginalTitle().toUpperCase() + " from favorites", Toast.LENGTH_SHORT).show();
+                    favStar.setImageResource(R.drawable.ic_star_border_black_24dp);
+                    dbMovieIdInsertDelete = -1;
+                    addedToFav = false;
+                }
             }
         }
     };
@@ -251,6 +270,8 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
         {
             outState.putParcelable("movieTrailer",trailerAndReviewInfoMovie);
         }
+        outState.putBoolean("addedToFav",addedToFav.booleanValue());
+        outState.putInt("selectedDbMovieId",dbMovieIdInsertDelete);
         super.onSaveInstanceState(outState);
     }
 
@@ -302,6 +323,45 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
         else
         {
             checkAndLoadMovies();
+        }
+
+        Log.d(LOG_TAG,"addedToFav is == "+addedToFav);
+        if(addedToFav == null) {
+
+            //Check if movie already added to DB, to set the favorite button accordingly
+            Cursor allMovies = getActivity().getContentResolver().query(Uri.parse(MovieTableConstants.BASE_CONTENT_URI + "/allMovies"), null, null, null, null);
+
+            Log.d(LOG_TAG,allMovies.getCount()+"");
+            if (allMovies.getCount() == 0) {
+                addedToFav = false;
+                favStar.setImageResource(R.drawable.ic_star_border_black_24dp);
+            } else {
+                long selectedMovieId = ((Movie) movieBundle.getParcelable("movieDetail")).getId();
+                Log.d(LOG_TAG,"selected movie "+selectedMovieId );
+                allMovies.moveToFirst();
+                do {
+                    movieId = allMovies.getInt(allMovies.getColumnIndex(MovieTableConstants.MOVIE_ID));
+                    if (selectedMovieId == movieId) {
+                        dbMovieIdInsertDelete = allMovies.getInt(allMovies.getColumnIndex(MovieTableConstants.ID));
+                        addedToFav = true;
+                        Log.d(LOG_TAG,"movie exists in favorite "+dbMovieIdInsertDelete );
+                        favStar.setImageResource(R.drawable.ic_grade_black_24dp);
+                        break;
+                    }
+                    addedToFav = false;
+                    dbMovieIdInsertDelete = -1;
+                    Log.d(LOG_TAG,"movie does not exist in favorite ");
+                    favStar.setImageResource(R.drawable.ic_star_border_black_24dp);
+                } while (allMovies.moveToNext());
+            }
+        }
+        else if(addedToFav.booleanValue() == true){
+            Log.d(LOG_TAG,"movie exists "+dbMovieIdInsertDelete );
+            favStar.setImageResource(R.drawable.ic_grade_black_24dp);
+        }
+        else{
+            Log.d(LOG_TAG,"movie NOT exists in favorite ");
+            favStar.setImageResource(R.drawable.ic_star_border_black_24dp);
         }
         favStar.setOnClickListener(favStarListener);
     }
