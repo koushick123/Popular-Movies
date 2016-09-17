@@ -44,9 +44,7 @@ public class MovieProvider extends ContentProvider
         sUriMatcher.addURI(MovieTableConstants.CONTENT_AUTHORITY,"/addMovie/trailer",INSERT_MOVIE_TRAILER);
         sUriMatcher.addURI(MovieTableConstants.CONTENT_AUTHORITY,"/addMovie/review",INSERT_MOVIE_REVIEW);
         sUriMatcher.addURI(MovieTableConstants.CONTENT_AUTHORITY,"/deleteMovie/#",DELETE_MOVIE);
-        sUriMatcher.addURI(MovieTableConstants.CONTENT_AUTHORITY,"/dropMovie/",DROP_MOVIE_TABLE);
-        //sUriMatcher.addURI(MovieTableConstants.CONTENT_AUTHORITY,"/deleteMovie/review",DELETE_MOVIE_REVIEW);
-        //sUriMatcher.addURI(MovieTableConstants.CONTENT_AUTHORITY,"/addMovie/trailer",DELETE_MOVIE_TRAILER);
+        //sUriMatcher.addURI(MovieTableConstants.CONTENT_AUTHORITY,"/dropMovie/",DROP_MOVIE_TABLE);
         sUriMatcher.addURI(MovieTableConstants.CONTENT_AUTHORITY,"/getMaxMovieId/",GET_MAX_MOVIE_ID);
     }
 
@@ -85,21 +83,18 @@ public class MovieProvider extends ContentProvider
                     "movie1._ID = movie_trail._ID AND movie1._ID = movie_rev._ID AND movie1._ID = "+String.valueOf(ContentUris.parseId(uri)),null,null,MovieTableConstants.ID,null);
 
                 movie = getWriteMovieDatabase().rawQuery(getMovie, null);
-                //movieDBHelper.close();
             break;
 
             case GET_ALL_MOVIE:
 
                 getMovie = SQLiteQueryBuilder.buildQueryString(false,MovieTableConstants.MOVIE_TABLE + " movie1 ",null,null,null,null,MovieTableConstants.ID,null );
                 movie = getWriteMovieDatabase().rawQuery(getMovie, null);
-                //movieDBHelper.close();
             break;
 
             case GET_MAX_MOVIE_ID:
 
                 getMovie = "SELECT MAX(_ID) AS MOVIE_ID,HEADING, SYNOPSIS, USER_RATING FROM MOVIE";
                     movie = getWriteMovieDatabase().rawQuery(getMovie, null);
-                //movieDBHelper.close();
             break;
 
             default:
@@ -369,7 +364,6 @@ public class MovieProvider extends ContentProvider
                     Log.d(LOG_TAG,"Reviews were deleted");
                 }
 
-                //getWriteMovieDatabase().close();
                 break;
 
             case DROP_MOVIE_TABLE:

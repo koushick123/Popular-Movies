@@ -2,6 +2,8 @@ package com.nanodegree.project1.popularmovies;
 
 import android.content.Context;
 import android.content.res.Configuration;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.support.annotation.NonNull;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -62,7 +64,13 @@ public class MovieAdapter extends ArrayAdapter
         {
             viewHolderImage.movieGrid.setNumColumns(2);
         }
-        Picasso.with(getContext()).load(BASE_PICASSO_URL+IMAGE_SIZE+movie.getPoster_path()).into(viewHolderImage.movieThumbnail);
+        if(movie.getMovieThumbnail() == null) {
+            Picasso.with(getContext()).load(BASE_PICASSO_URL + IMAGE_SIZE + movie.getPoster_path()).into(viewHolderImage.movieThumbnail);
+        }
+        else{
+            Bitmap moviePoster = BitmapFactory.decodeByteArray(movie.getMovieThumbnail(),0,movie.getMovieThumbnail().length);
+            viewHolderImage.movieThumbnail.setImageBitmap(moviePoster);
+        }
 
         return listItem;
     }

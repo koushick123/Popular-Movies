@@ -9,8 +9,10 @@ import android.content.IntentFilter;
 import android.content.Loader;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
+import android.database.Cursor;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.net.Uri;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
@@ -22,6 +24,8 @@ import android.widget.AdapterView;
 import android.widget.GridView;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
+
+import com.nanodegree.project1.popularmovies.data.MovieTableConstants;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -63,35 +67,40 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
             ArrayList<Movie> movies = savedInstanceState.getParcelableArrayList("parcelMovies");
             Log.d(LOG_TAG,"load movies");
             oldSortOrder = savedInstanceState.getString("oldSortOrder");
-            if(movies != null)
+            if(!oldSortOrder.equalsIgnoreCase(getResources().getString(R.string.settings_order_by_favorites_value)))
             {
-                updateMovies(movies);
-            }
-            else
-            {
-                checkAndLoadMovies();
+                if(movies != null)
+                {
+                    updateMovies(movies);
+                }
+                else
+                {
+                    checkAndLoadMovies();
+                }
             }
         }
         else
         {
-            if(checkIfInternetIsAvailable())
+            oldSortOrder = getPreferencesSetting();
+            Log.d(LOG_TAG,"Sort order == "+oldSortOrder);
+            if(!oldSortOrder.equalsIgnoreCase(getResources().getString(R.string.settings_order_by_favorites_value)))
             {
-                checkAndLoadMovies();
+                if(checkIfInternetIsAvailable())
+                {
+                    checkAndLoadMovies();
+                }
+                else
+                {
+                    setEmptyListView(MovieConstants.NO_INT_CONN);
+                }
             }
-            else
-            {
-                setEmptyListView(MovieConstants.NO_INT_CONN);
-            }
-            oldSortOrder = sharedPrefs.getString(
-                    getString(R.string.settings_order_by_key),
-                    getString(R.string.settings_order_by_default));
         }
     }
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
         Log.d(LOG_TAG,"onSaveInstanceState");
-        if(allMovies != null)
+        if(allMovies != null && allMovies.size() > 0)
         {
             Log.d(LOG_TAG, "Saving data before destruction..." + allMovies.size());
             outState.putParcelableArrayList("parcelMovies", allMovies);
@@ -108,10 +117,8 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
     public Loader<List<Movie>> onCreateLoader(int id, Bundle args)
     {
         Log.d(LOG_TAG,"OnCreateLoader");
-        SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
-        String sortOrder = sharedPrefs.getString(
-                getString(R.string.settings_order_by_key),
-                getString(R.string.settings_order_by_default));
+        //SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
+        String sortOrder = getPreferencesSetting();
 
         oldSortOrder = sortOrder;
         String modifiedUrl = MovieConstants.MOVIE_DB_BASE_URL+sortOrder+MovieConstants.MOVIE_DB_API_KEY;
@@ -159,15 +166,16 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
     {
         super.onResume();
         Log.d(LOG_TAG,"onResume -> "+allMovies);
-        sharedPrefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
-        String sortOrder = sharedPrefs.getString(
-                getString(R.string.settings_order_by_key),
-                getString(R.string.settings_order_by_default));
+        String sortOrder = getPreferencesSetting();
         Log.d(LOG_TAG,"Sort Order -> "+sortOrder);
         Log.d(LOG_TAG,"Old Sort Order -> "+oldSortOrder);
         if(allMovies == null || (!sortOrder.equalsIgnoreCase(oldSortOrder)))
         {
-            if(checkIfInternetIsAvailable())
+            if(sortOrder.equalsIgnoreCase(getResources().getString(R.string.settings_order_by_favorites_value)))
+            {
+                loadFavoriteMovies();
+            }
+            else if(checkIfInternetIsAvailable())
             {
                 if(allMovies == null) {
                     checkIfMoviesNeedToBeRefreshed();
@@ -203,7 +211,8 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
                         NetworkInfo networkInfo = (NetworkInfo) extras.get(key);
                         Log.d(LOG_TAG, "" + networkInfo.getState());
                         Log.d(LOG_TAG,"listView -> "+movieListView);
-                        if (networkInfo.getState() == NetworkInfo.State.CONNECTED)
+                        String sortOrder = getPreferencesSetting();
+                        if (networkInfo.getState() == NetworkInfo.State.CONNECTED && !sortOrder.equalsIgnoreCase(getResources().getString(R.string.settings_order_by_favorites_value)))
                         {
                             checkIfMoviesNeedToBeRefreshed();
                         }
@@ -240,7 +249,9 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
                 {
                     Log.d(LOG_TAG,"========Item clicked......");
                     Intent movieDetailIntent = new Intent(getActivity().getApplicationContext(),MovieDetailActivity.class);
+                    Log.d(LOG_TAG,"Movie id being passed === "+allMovies.get(position).getId());
                     movieDetailIntent.putExtra("movieDetail",allMovies.get(position));
+                    Log.d(LOG_TAG,"Movie id being set === "+((Movie)movieDetailIntent.getParcelableExtra("movieDetail")).getId());
                     startActivity(movieDetailIntent);
                 }
             });
@@ -253,21 +264,34 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
 
     private void setEmptyListView(String msg)
     {
+        MovieAdapter adapter = new MovieAdapter(getActivity().getApplicationContext(),new ArrayList<Movie>());
         if(msg.equalsIgnoreCase(MovieConstants.NO_DATA_FOUND))
         {
             placeHolderImage.setVisibility(View.VISIBLE);
             placeHolderImage.setImageResource(R.drawable.no_data);
+            movieListView.setAdapter(adapter);
+            adapter.notifyDataSetChanged();
             movieListView.setEmptyView(placeHolderImage);
         }
         else if(msg.equalsIgnoreCase(MovieConstants.EMPTY_TEXT))
         {
-            placeHolderImage.setVisibility(View.INVISIBLE);
+            placeHolderImage.setVisibility(View.GONE);
             movieListView.setEmptyView(placeHolderImage);
         }
         else if(msg.equalsIgnoreCase(MovieConstants.NO_INT_CONN))
         {
             placeHolderImage.setVisibility(View.VISIBLE);
             placeHolderImage.setImageResource(R.drawable.no_internet_connection_message);
+            movieListView.setAdapter(adapter);
+            adapter.notifyDataSetChanged();
+            movieListView.setEmptyView(placeHolderImage);
+        }
+        else if(msg.equalsIgnoreCase(MovieConstants.NO_FAVORITES))
+        {
+            placeHolderImage.setVisibility(View.VISIBLE);
+            placeHolderImage.setImageResource(R.drawable.no_favorites);
+            movieListView.setAdapter(adapter);
+            adapter.notifyDataSetChanged();
             movieListView.setEmptyView(placeHolderImage);
         }
         spinner.setVisibility(View.INVISIBLE);
@@ -336,5 +360,37 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
             setEmptyListView(MovieConstants.EMPTY_TEXT);
             loadMovies();
         }
+    }
+
+    private void loadFavoriteMovies()
+    {
+        Cursor favMovies = getActivity().getContentResolver().query(Uri.parse(MovieTableConstants.BASE_CONTENT_URI+"/allMovies"),null,null,null,null);
+        Log.d(LOG_TAG,"FAv movie count === "+favMovies.getCount());
+        if(favMovies.getCount() == 0){
+            setEmptyListView(MovieConstants.NO_FAVORITES);
+        }
+        else{
+            favMovies.moveToFirst();
+            ArrayList<Movie> myFavMovies = new ArrayList<Movie>();
+            do{
+                String title = favMovies.getString(favMovies.getColumnIndex(MovieTableConstants.HEADING));
+                String synopsis = favMovies.getString(favMovies.getColumnIndex(MovieTableConstants.SYNOPSIS));
+                int userRating = favMovies.getInt(favMovies.getColumnIndex(MovieTableConstants.USER_RATING));
+                String releaseDate = favMovies.getString(favMovies.getColumnIndex(MovieTableConstants.RELEASE_DATE));
+                long Id = favMovies.getLong(favMovies.getColumnIndex(MovieTableConstants.MOVIE_ID));
+                byte[] thumbnail = favMovies.getBlob(favMovies.getColumnIndex(MovieTableConstants.THUMBNAIL));
+                Log.d(LOG_TAG,thumbnail.toString());
+                Movie dbMovies = new Movie(title,null,synopsis,userRating,releaseDate,Id,thumbnail);
+                myFavMovies.add(dbMovies);
+            }while(favMovies.moveToNext());
+            updateMovies(myFavMovies);
+        }
+    }
+
+    private String getPreferencesSetting()
+    {
+        return sharedPrefs.getString(
+                getString(R.string.settings_order_by_key),
+                getString(R.string.settings_order_by_default));
     }
 }

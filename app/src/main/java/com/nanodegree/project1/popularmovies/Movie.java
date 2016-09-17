@@ -8,24 +8,26 @@ import android.os.Parcelable;
  */
 public class Movie implements Parcelable{
 
-    String originalTitle;
-    String poster_path;
-    String synopsis;
-    double userRating;
-    String releaseDate;
-    long id;
-    String[] key;
-    String[] trailerName;
-    String[] authors;
-    String[] contents;
+    private String originalTitle;
+    private String poster_path;
+    private byte[] movieThumbnail;
+    private String synopsis;
+    private double userRating;
+    private String releaseDate;
+    private long id;
+    private String[] key;
+    private String[] trailerName;
+    private String[] authors;
+    private String[] contents;
 
-    public Movie(String originalTitle, String poster_path, String synopsis, double userRating, String releaseDate, long id) {
+    public Movie(String originalTitle, String poster_path, String synopsis, double userRating, String releaseDate, long id,byte[] movieThumbnail) {
         this.originalTitle = originalTitle;
         this.poster_path = poster_path;
         this.synopsis = synopsis;
         this.userRating = userRating;
         this.releaseDate = releaseDate;
         this.id = id;
+        this.movieThumbnail = movieThumbnail;
     }
 
     private Movie(Parcel in)
@@ -36,6 +38,9 @@ public class Movie implements Parcelable{
         userRating = in.readDouble();
         releaseDate = in.readString();
         id = in.readLong();
+        if(this.movieThumbnail != null) {
+            in.readByteArray(this.movieThumbnail);
+        }
     }
 
     public long getId() {
@@ -118,6 +123,14 @@ public class Movie implements Parcelable{
         this.contents = contents;
     }
 
+    public byte[] getMovieThumbnail() {
+        return movieThumbnail;
+    }
+
+    public void setMovieThumbnail(byte[] movieThumbnail) {
+        this.movieThumbnail = movieThumbnail;
+    }
+
     @Override
     public int describeContents() {
         return 0;
@@ -132,6 +145,9 @@ public class Movie implements Parcelable{
         parcel.writeDouble(userRating);
         parcel.writeString(releaseDate);
         parcel.writeLong(id);
+        if(movieThumbnail != null) {
+            parcel.writeByteArray(movieThumbnail);
+        }
     }
 
     public static final Parcelable.Creator<Movie> CREATOR = new Parcelable.Creator<Movie>() {

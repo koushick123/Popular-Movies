@@ -11,6 +11,6 @@ public class MovieConstants {
     public static final String MOVIE_DB_BASE_URL = "http://api.themoviedb.org/3/movie/";
     public static final String MOVIE_VIDEOS_ENDPOINT = "/videos";
     public static final String MOVIE_REVIEWS_ENDPOINT = "/reviews";
-    public static final String EMPTY_TEXT = "", NO_INT_CONN = "No Internet Connection", NO_DATA_FOUND = "No Data Found";
+    public static final String EMPTY_TEXT = "", NO_INT_CONN = "No Internet Connection", NO_DATA_FOUND = "No Data Found", NO_FAVORITES = "No Favorites";
     public static final String YOUTUBE_LINK = "https://www.youtube.com/watch?v=";
 }

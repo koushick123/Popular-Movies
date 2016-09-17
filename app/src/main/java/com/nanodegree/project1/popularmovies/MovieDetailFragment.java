@@ -8,6 +8,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.Loader;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.Typeface;
@@ -15,6 +16,7 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 import android.util.Log;
 import android.view.Gravity;
@@ -48,10 +50,10 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
     LinearLayout trailerAndReviewList;
     ImageView placeHolderImage;
     TextView trailerHeading;
-    TableRow hr;
     ImageView favStar;
     LinearLayout movieDetails;
     Movie trailerAndReviewInfoMovie;
+    SharedPreferences sharedPrefs;
     Boolean addedToFav;
     int dbMovieIdInsertDelete = -1;
     int movieId;
@@ -71,9 +73,9 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
         trailerAndReviewList = (LinearLayout)rootView.findViewById(R.id.trailerAndReviewList);
         placeHolderImage = (ImageView)rootView.findViewById(R.id.trailerPlaceHolderImage);
         trailerHeading = (TextView)rootView.findViewById(R.id.trailerHeading);
-        hr = (TableRow)rootView.findViewById(R.id.hr);
         movieDetails = (LinearLayout)rootView.findViewById(R.id.movieDetails);
         favStar = (ImageView)rootView.findViewById(R.id.favoriteStar);
+        sharedPrefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
         if(savedInstanceState == null)
         {
             movieBundle = getArguments();
@@ -109,7 +111,8 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
     public void onResume() {
         super.onResume();
         Log.d(LOG_TAG,"onResume ==>"+trailerAndReviewInfoMovie);
-        if(trailerAndReviewInfoMovie == null)
+        Log.d(LOG_TAG,"resume preference setting == "+getPreferencesSetting());
+        if(trailerAndReviewInfoMovie == null && !getPreferencesSetting().equalsIgnoreCase(getResources().getString(R.string.settings_order_by_favorites_value)))
         {
             if(checkIfInternetIsAvailable())
             {
@@ -228,7 +231,8 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
                         NetworkInfo networkInfo = (NetworkInfo) extras.get(key);
                         Log.d(LOG_TAG, "" + networkInfo.getState());
                         Log.d(LOG_TAG,"listView -> "+trailerAndReviewList);
-                        if (networkInfo.getState() == NetworkInfo.State.CONNECTED)
+                        Log.d(LOG_TAG,"Preference setting == "+getPreferencesSetting());
+                        if (networkInfo.getState() == NetworkInfo.State.CONNECTED && !getPreferencesSetting().equalsIgnoreCase(getResources().getString(R.string.settings_order_by_favorites_value)))
                         {
                             checkIfMoviesNeedToBeRefreshed();
                         }
@@ -326,42 +330,50 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
         }
 
         Log.d(LOG_TAG,"addedToFav is == "+addedToFav);
-        if(addedToFav == null) {
+        Log.d(LOG_TAG,"pref. setting == "+getPreferencesSetting());
 
-            //Check if movie already added to DB, to set the favorite button accordingly
-            Cursor allMovies = getActivity().getContentResolver().query(Uri.parse(MovieTableConstants.BASE_CONTENT_URI + "/allMovies"), null, null, null, null);
+        if(!getPreferencesSetting().equalsIgnoreCase(getResources().getString(R.string.settings_order_by_favorites_value))) {
+            if (addedToFav == null) {
 
-            Log.d(LOG_TAG,allMovies.getCount()+"");
-            if (allMovies.getCount() == 0) {
-                addedToFav = false;
-                favStar.setImageResource(R.drawable.ic_star_border_black_24dp);
-            } else {
-                long selectedMovieId = ((Movie) movieBundle.getParcelable("movieDetail")).getId();
-                Log.d(LOG_TAG,"selected movie "+selectedMovieId );
-                allMovies.moveToFirst();
-                do {
-                    movieId = allMovies.getInt(allMovies.getColumnIndex(MovieTableConstants.MOVIE_ID));
-                    if (selectedMovieId == movieId) {
-                        dbMovieIdInsertDelete = allMovies.getInt(allMovies.getColumnIndex(MovieTableConstants.ID));
-                        addedToFav = true;
-                        Log.d(LOG_TAG,"movie exists in favorite "+dbMovieIdInsertDelete );
-                        favStar.setImageResource(R.drawable.ic_grade_black_24dp);
-                        break;
-                    }
+                //Check if movie already added to DB, to set the favorite button accordingly
+                Cursor allMovies = getActivity().getContentResolver().query(Uri.parse(MovieTableConstants.BASE_CONTENT_URI + "/allMovies"), null, null, null, null);
+
+                Log.d(LOG_TAG, allMovies.getCount() + "");
+                if (allMovies.getCount() == 0) {
                     addedToFav = false;
-                    dbMovieIdInsertDelete = -1;
-                    Log.d(LOG_TAG,"movie does not exist in favorite ");
                     favStar.setImageResource(R.drawable.ic_star_border_black_24dp);
-                } while (allMovies.moveToNext());
+                } else {
+                    long selectedMovieId = ((Movie) movieBundle.getParcelable("movieDetail")).getId();
+                    Log.d(LOG_TAG, "selected movie " + selectedMovieId);
+                    allMovies.moveToFirst();
+                    do {
+                        movieId = allMovies.getInt(allMovies.getColumnIndex(MovieTableConstants.MOVIE_ID));
+                        if (selectedMovieId == movieId) {
+                            dbMovieIdInsertDelete = allMovies.getInt(allMovies.getColumnIndex(MovieTableConstants.ID));
+                            addedToFav = true;
+                            Log.d(LOG_TAG, "movie exists in favorite " + dbMovieIdInsertDelete);
+                            favStar.setImageResource(R.drawable.ic_grade_black_24dp);
+                            break;
+                        }
+                        addedToFav = false;
+                        dbMovieIdInsertDelete = -1;
+                        Log.d(LOG_TAG, "movie does not exist in favorite ");
+                        favStar.setImageResource(R.drawable.ic_star_border_black_24dp);
+                    } while (allMovies.moveToNext());
+                    Log.d(LOG_TAG, "inside if");
+                }
+            } else if (addedToFav.booleanValue() == true) {
+
+                Log.d(LOG_TAG, "movie exists " + dbMovieIdInsertDelete);
+                favStar.setImageResource(R.drawable.ic_grade_black_24dp);
+            } else {
+
+                Log.d(LOG_TAG, "movie NOT exists in favorite ");
+                favStar.setImageResource(R.drawable.ic_star_border_black_24dp);
             }
         }
-        else if(addedToFav.booleanValue() == true){
-            Log.d(LOG_TAG,"movie exists "+dbMovieIdInsertDelete );
-            favStar.setImageResource(R.drawable.ic_grade_black_24dp);
-        }
         else{
-            Log.d(LOG_TAG,"movie NOT exists in favorite ");
-            favStar.setImageResource(R.drawable.ic_star_border_black_24dp);
+            favStar.setImageResource(R.drawable.ic_grade_black_24dp);
         }
         favStar.setOnClickListener(favStarListener);
     }
@@ -610,5 +622,12 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
             setEmptyListView(MovieConstants.EMPTY_TEXT);
             loadMovies();
         }
+    }
+
+    private String getPreferencesSetting()
+    {
+        return sharedPrefs.getString(
+                getString(R.string.settings_order_by_key),
+                getString(R.string.settings_order_by_default));
     }
 }
