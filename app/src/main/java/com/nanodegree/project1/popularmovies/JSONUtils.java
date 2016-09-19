@@ -28,7 +28,7 @@ public class JSONUtils {
             {
                 JSONObject resultObj = results.getJSONObject(i);
                 movies.add(new Movie(resultObj.getString("original_title"),resultObj.getString("poster_path"),resultObj.getString("overview"),resultObj.getDouble("vote_average"),
-                        resultObj.getString("release_date"),resultObj.getLong("id"),null));
+                        resultObj.getString("release_date"),resultObj.getLong("id"),null,-1));
             }
 
         } catch (JSONException e) {

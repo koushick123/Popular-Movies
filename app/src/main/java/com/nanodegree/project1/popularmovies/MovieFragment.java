@@ -105,6 +105,8 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
             Log.d(LOG_TAG, "Saving data before destruction..." + allMovies.size());
             outState.putParcelableArrayList("parcelMovies", allMovies);
         }
+        //Save the old sort order , to get it back when fragment is resumed.
+        oldSortOrder = getPreferencesSetting();
         if(oldSortOrder != null)
         {
             Log.d(LOG_TAG, "Saving SORT ORDER before destruction..." + oldSortOrder);
@@ -117,7 +119,6 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
     public Loader<List<Movie>> onCreateLoader(int id, Bundle args)
     {
         Log.d(LOG_TAG,"OnCreateLoader");
-        //SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
         String sortOrder = getPreferencesSetting();
 
         oldSortOrder = sortOrder;
@@ -249,9 +250,7 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
                 {
                     Log.d(LOG_TAG,"========Item clicked......");
                     Intent movieDetailIntent = new Intent(getActivity().getApplicationContext(),MovieDetailActivity.class);
-                    Log.d(LOG_TAG,"Movie id being passed === "+allMovies.get(position).getId());
                     movieDetailIntent.putExtra("movieDetail",allMovies.get(position));
-                    Log.d(LOG_TAG,"Movie id being set === "+((Movie)movieDetailIntent.getParcelableExtra("movieDetail")).getId());
                     startActivity(movieDetailIntent);
                 }
             });
@@ -378,9 +377,10 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
                 int userRating = favMovies.getInt(favMovies.getColumnIndex(MovieTableConstants.USER_RATING));
                 String releaseDate = favMovies.getString(favMovies.getColumnIndex(MovieTableConstants.RELEASE_DATE));
                 long Id = favMovies.getLong(favMovies.getColumnIndex(MovieTableConstants.MOVIE_ID));
+                long dbId = favMovies.getLong(favMovies.getColumnIndex(MovieTableConstants.ID));
                 byte[] thumbnail = favMovies.getBlob(favMovies.getColumnIndex(MovieTableConstants.THUMBNAIL));
-                Log.d(LOG_TAG,thumbnail.toString());
-                Movie dbMovies = new Movie(title,null,synopsis,userRating,releaseDate,Id,thumbnail);
+                Movie dbMovies = new Movie(title,null,synopsis,userRating,releaseDate,Id,thumbnail,dbId);
+                Log.d(LOG_TAG,dbId+"");
                 myFavMovies.add(dbMovies);
             }while(favMovies.moveToNext());
             updateMovies(myFavMovies);

@@ -76,6 +76,7 @@ public class MovieProvider extends ContentProvider
         switch (match)
         {
             case GET_MOVIE_WITH_ID:
+                Log.d(LOG_TAG,String.valueOf(ContentUris.parseId(uri)));
 
                 getMovie = SQLiteQueryBuilder.buildQueryString(false,MovieTableConstants.MOVIE_TABLE + " movie1 " +
                     MovieTableConstants.MOVIE_TRAILERS_TABLE + " movie_trail, " +

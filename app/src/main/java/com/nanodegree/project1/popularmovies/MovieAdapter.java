@@ -69,6 +69,7 @@ public class MovieAdapter extends ArrayAdapter
         }
         else{
             Bitmap moviePoster = BitmapFactory.decodeByteArray(movie.getMovieThumbnail(),0,movie.getMovieThumbnail().length);
+            viewHolderImage.movieThumbnail.setScaleY(1.1F);
             viewHolderImage.movieThumbnail.setImageBitmap(moviePoster);
         }
 

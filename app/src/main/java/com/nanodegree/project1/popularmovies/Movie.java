@@ -15,12 +15,13 @@ public class Movie implements Parcelable{
     private double userRating;
     private String releaseDate;
     private long id;
+    private long dbMovieId;
     private String[] key;
     private String[] trailerName;
     private String[] authors;
     private String[] contents;
 
-    public Movie(String originalTitle, String poster_path, String synopsis, double userRating, String releaseDate, long id,byte[] movieThumbnail) {
+    public Movie(String originalTitle, String poster_path, String synopsis, double userRating, String releaseDate, long id, byte[] movieThumbnail, long dbMovieId) {
         this.originalTitle = originalTitle;
         this.poster_path = poster_path;
         this.synopsis = synopsis;
@@ -28,6 +29,7 @@ public class Movie implements Parcelable{
         this.releaseDate = releaseDate;
         this.id = id;
         this.movieThumbnail = movieThumbnail;
+        this.dbMovieId = dbMovieId;
     }
 
     private Movie(Parcel in)
@@ -41,6 +43,7 @@ public class Movie implements Parcelable{
         if(this.movieThumbnail != null) {
             in.readByteArray(this.movieThumbnail);
         }
+        dbMovieId = in.readLong();
     }
 
     public long getId() {
@@ -131,6 +134,14 @@ public class Movie implements Parcelable{
         this.movieThumbnail = movieThumbnail;
     }
 
+    public long getDbMovieId() {
+        return dbMovieId;
+    }
+
+    public void setDbMovieId(long dbMovieId) {
+        this.dbMovieId = dbMovieId;
+    }
+
     @Override
     public int describeContents() {
         return 0;
@@ -148,6 +159,7 @@ public class Movie implements Parcelable{
         if(movieThumbnail != null) {
             parcel.writeByteArray(movieThumbnail);
         }
+        parcel.writeLong(dbMovieId);
     }
 
     public static final Parcelable.Creator<Movie> CREATOR = new Parcelable.Creator<Movie>() {
