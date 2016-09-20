@@ -36,6 +36,7 @@ import com.squareup.picasso.Picasso;
 
 import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
+import java.util.Collections;
 
 public class MovieDetailFragment extends Fragment implements LoaderManager.LoaderCallbacks<Movie>
 {
@@ -60,6 +61,8 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
     int dbMovieIdInsertDelete = -1;
     int movieId;
     Movie movieDisplay;
+    TableRow line;
+    byte[] moviePoster;
 
     @Nullable
     @Override
@@ -79,11 +82,13 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
         movieDetails = (LinearLayout)rootView.findViewById(R.id.movieDetails);
         favStar = (ImageView)rootView.findViewById(R.id.favoriteStar);
         sharedPrefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
+        line = (TableRow)rootView.findViewById(R.id.hr);
         if(savedInstanceState == null)
         {
             movieBundle = getArguments();
-            movieDisplay = ((Movie)movieBundle.getParcelable("movieDetail"));
-            Log.d(LOG_TAG,movieBundle+"  oncreateview");
+            movieDisplay = (Movie)movieBundle.getParcelable("movieDetail");
+            moviePoster = movieBundle.getByteArray("movieThumbnail");
+            Log.d(LOG_TAG,movieBundle+"  oncreateview "+moviePoster);
         }
         else
         {
@@ -91,6 +96,7 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
             dbMovieIdInsertDelete = savedInstanceState.getInt("selectedDbMovieId");
             movieBundle = savedInstanceState.getParcelable("movieInfo");
             movieDisplay = ((Movie)movieBundle.getParcelable("movieDetail"));
+            moviePoster = savedInstanceState.getByteArray("movieThumbnailImage");
             trailerAndReviewInfoMovie = savedInstanceState.getParcelable("movieTrailer");
         }
         return rootView;
@@ -213,7 +219,6 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
                 if(dbMovieIdInsertDelete != -1) {
                     Log.d(LOG_TAG,"Deleting movie id "+dbMovieIdInsertDelete);
                     int no_of_records = getActivity().getContentResolver().delete(Uri.parse(MovieTableConstants.BASE_CONTENT_URI + "/deleteMovie/" + dbMovieIdInsertDelete), null, null);
-                    Log.d(LOG_TAG, "No of records deleted == >" + no_of_records);
                     Toast.makeText(getActivity().getApplicationContext(), "Deleted " + ((Movie) movieBundle.getParcelable("movieDetail")).getOriginalTitle().toUpperCase() + " from favorites", Toast.LENGTH_SHORT).show();
                     favStar.setImageResource(R.drawable.ic_star_border_black_24dp);
                     dbMovieIdInsertDelete = -1;
@@ -281,6 +286,7 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
         }
         outState.putBoolean("addedToFav",addedToFav.booleanValue());
         outState.putInt("selectedDbMovieId",dbMovieIdInsertDelete);
+        outState.putByteArray("movieThumbnailImage",moviePoster);
         super.onSaveInstanceState(outState);
     }
 
@@ -324,7 +330,6 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
         super.onActivityCreated(savedInstanceState);
         Log.d(LOG_TAG,"==== onActivityCreated ===="+savedInstanceState);
         Log.d(LOG_TAG,"==== onActivityCreated ==== movieBundle === "+movieBundle);
-        movieDetails.setVisibility(View.INVISIBLE);
         if(trailerAndReviewInfoMovie != null)
         {
             displayMovieDetails(movieBundle);
@@ -332,8 +337,12 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
         }
         else
         {
+            favStar.setVisibility(View.GONE);
+            movieHeading.setVisibility(View.GONE);
+            line.setVisibility(View.GONE);
+            trailerHeading.setVisibility(View.GONE);
             if(!getPreferencesSetting().equalsIgnoreCase(getResources().getString(R.string.settings_order_by_favorites_value))) {
-                //checkAndLoadMovies();
+                checkAndLoadMovies();
             }
         }
 
@@ -385,41 +394,58 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
             favStar.setImageResource(R.drawable.ic_grade_black_24dp);
             Cursor allMovies = getActivity().getContentResolver().query(Uri.parse(MovieTableConstants.BASE_CONTENT_URI + "/movie_id/"+movieDisplay.getDbMovieId()),
                     null, null, null, null);
-            Log.d(LOG_TAG,movieDisplay.getDbMovieId()+"");
+            Log.d(LOG_TAG,"Movie DB ID == "+movieDisplay.getDbMovieId());
 
             if(trailerAndReviewInfoMovie == null) {
                 allMovies.moveToFirst();
+                dbMovieIdInsertDelete = (int)movieDisplay.getDbMovieId();
                 ArrayList<String> keys = new ArrayList<String>();
                 ArrayList<String> names = new ArrayList<String>();
                 ArrayList<String> authors = new ArrayList<String>();
                 ArrayList<String> contents = new ArrayList<String>();
                 do {
                     String temp = allMovies.getString(allMovies.getColumnIndex(MovieTableConstants.KEY));
+                    Log.d(LOG_TAG,"Key = "+temp);
                     if (keys.size() > 0) {
                         if (!keys.contains(temp)) {
                             keys.add(temp);
                         }
                     }
+                    else if(keys.size() == 0){
+                        keys.add(temp);
+                    }
 
                     temp = allMovies.getString(allMovies.getColumnIndex(MovieTableConstants.NAME));
+                    Log.d(LOG_TAG,"Name = "+temp);
                     if (names.size() > 0) {
                         if (!names.contains(temp)) {
                             names.add(temp);
                         }
                     }
+                    else if(names.size() == 0){
+                        names.add(temp);
+                    }
 
                     temp = allMovies.getString(allMovies.getColumnIndex(MovieTableConstants.AUTHOR));
+                    Log.d(LOG_TAG,"Author = "+temp);
                     if (authors.size() > 0) {
                         if (!authors.contains(temp)) {
                             authors.add(temp);
                         }
                     }
+                    else if(authors.size() == 0){
+                        authors.add(temp);
+                    }
 
                     temp = allMovies.getString(allMovies.getColumnIndex(MovieTableConstants.CONTENT));
+                    Log.d(LOG_TAG,"Content = "+temp);
                     if (contents.size() > 0) {
                         if (!contents.contains(temp)) {
                             contents.add(temp);
                         }
+                    }
+                    else if(contents.size() == 0){
+                        contents.add(temp);
                     }
                 } while (allMovies.moveToNext());
 
@@ -427,9 +453,11 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
                         (movieDisplay.getUserRating()),(movieDisplay.getReleaseDate()),
                         (movieDisplay.getId()),(movieDisplay.getMovieThumbnail()),
                         movieDisplay.getDbMovieId());
+                Collections.reverse(contents);
                 trailerAndReviewInfoMovie.setContents(contents.toArray(new String[contents.size()]));
                 trailerAndReviewInfoMovie.setKey(keys.toArray(new String[keys.size()]));
                 trailerAndReviewInfoMovie.setTrailerName(names.toArray(new String[names.size()]));
+                Collections.reverse(authors);
                 trailerAndReviewInfoMovie.setAuthors(authors.toArray(new String[authors.size()]));
                 displayMovieDetails(movieBundle);
                 displayMovieTrailerAndReviewDetails(trailerAndReviewInfoMovie);
@@ -462,14 +490,21 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
 
     private void displayMovieDetails(Bundle movie)
     {
+        if(favStar.getVisibility() == View.GONE && movieHeading.getVisibility() == View.GONE && line.getVisibility() == View.GONE && trailerHeading.getVisibility() == View.GONE) {
+            favStar.setVisibility(View.VISIBLE);
+            movieHeading.setVisibility(View.VISIBLE);
+            line.setVisibility(View.VISIBLE);
+            trailerHeading.setVisibility(View.VISIBLE);
+        }
+
         movieHeading.setText(((Movie)movie.getParcelable("movieDetail")).getOriginalTitle());
         if(((Movie)movie.getParcelable("movieDetail")).getPoster_path() != null) {
             Picasso.with(getActivity().getApplicationContext()).load(MovieConstants.BASE_PICASSO_URL + MovieConstants.IMAGE_SIZE + ((Movie) movie.getParcelable("movieDetail")).getPoster_path()).into(movieThumbnail);
         }
         else{
-            Bitmap movieBm = BitmapFactory.decodeByteArray(((Movie)movie.getParcelable("movieDetail")).getMovieThumbnail(),0,((Movie)movie.getParcelable("movieDetail")).getMovieThumbnail().length);
-            movieThumbnail.setScaleY(0.5F);
-            movieThumbnail.setScaleX(0.75F);
+            Bitmap movieBm = BitmapFactory.decodeByteArray(moviePoster,0,moviePoster.length);
+            movieThumbnail.setScaleY(0.9F);
+            movieThumbnail.setScaleX(0.9F);
             movieThumbnail.setImageBitmap(movieBm);
         }
         movieReleaseDate.setText(((Movie)movie.getParcelable("movieDetail")).getReleaseDate());
@@ -675,7 +710,6 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
     private void loadMovies()
     {
         getLoaderManager().initLoader(1, null, getMovieObj()).forceLoad();
-        //movieDetails.setVisibility(View.INVISIBLE);
         spinner.setVisibility(View.VISIBLE);
     }
 

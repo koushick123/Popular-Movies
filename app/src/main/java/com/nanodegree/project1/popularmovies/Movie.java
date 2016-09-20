@@ -40,10 +40,10 @@ public class Movie implements Parcelable{
         userRating = in.readDouble();
         releaseDate = in.readString();
         id = in.readLong();
+        dbMovieId = in.readLong();
         if(this.movieThumbnail != null) {
             in.readByteArray(this.movieThumbnail);
         }
-        dbMovieId = in.readLong();
     }
 
     public long getId() {
@@ -156,10 +156,10 @@ public class Movie implements Parcelable{
         parcel.writeDouble(userRating);
         parcel.writeString(releaseDate);
         parcel.writeLong(id);
+        parcel.writeLong(dbMovieId);
         if(movieThumbnail != null) {
             parcel.writeByteArray(movieThumbnail);
         }
-        parcel.writeLong(dbMovieId);
     }
 
     public static final Parcelable.Creator<Movie> CREATOR = new Parcelable.Creator<Movie>() {

@@ -62,7 +62,11 @@ public class MovieProvider extends ContentProvider
 
     public static SQLiteDatabase getWriteMovieDatabase(){
         if(writeMovieDatabase == null){
-            writeMovieDatabase = movieDBHelper.getWritableDatabase();
+            String myPath = MovieDBHelper.DB_PATH + MovieDBHelper.DATABASE_NAME;
+            writeMovieDatabase = SQLiteDatabase.openDatabase(myPath, null, SQLiteDatabase.OPEN_READONLY);
+            if(writeMovieDatabase != null){
+                return writeMovieDatabase;
+            }
         }
         return writeMovieDatabase;
     }
@@ -78,11 +82,9 @@ public class MovieProvider extends ContentProvider
             case GET_MOVIE_WITH_ID:
                 Log.d(LOG_TAG,String.valueOf(ContentUris.parseId(uri)));
 
-                getMovie = SQLiteQueryBuilder.buildQueryString(false,MovieTableConstants.MOVIE_TABLE + " movie1 " +
-                    MovieTableConstants.MOVIE_TRAILERS_TABLE + " movie_trail, " +
-                    MovieTableConstants.MOVIE_REVIEWS_TABLE + " movie_rev ",new String[] {"movie1.thumbnail, movie1.heading, movie1.synopsis, movie1.release_date, movie1.user_rating, movie_trail.name, movie_trail.key, movie_rev.author, movie_rev.content"},
-                    "movie1._ID = movie_trail._ID AND movie1._ID = movie_rev._ID AND movie1._ID = "+String.valueOf(ContentUris.parseId(uri)),null,null,MovieTableConstants.ID,null);
-
+                getMovie = "SELECT movie1._ID, movie1.thumbnail, movie1.heading, movie1.synopsis, movie1.release_date, movie1.user_rating, movie_trail.name, movie_trail.key, movie_rev.author, movie_rev.content " +
+                        "FROM movie movie1, movie_trailers movie_trail, movie_reviews movie_rev " +
+                        "WHERE movie1._ID = movie_trail._ID AND movie1._ID = movie_rev._ID AND movie1._ID = "+"'"+ContentUris.parseId(uri)+"'";
                 movie = getWriteMovieDatabase().rawQuery(getMovie, null);
             break;
 
