@@ -392,19 +392,19 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
         else{
             addedToFav = true;
             favStar.setImageResource(R.drawable.ic_grade_black_24dp);
-            Cursor allMovies = getActivity().getContentResolver().query(Uri.parse(MovieTableConstants.BASE_CONTENT_URI + "/movie_id/"+movieDisplay.getDbMovieId()),
+            Cursor favMovies = getActivity().getContentResolver().query(Uri.parse(MovieTableConstants.BASE_CONTENT_URI + "/movie_id/"+movieDisplay.getDbMovieId()),
                     null, null, null, null);
             Log.d(LOG_TAG,"Movie DB ID == "+movieDisplay.getDbMovieId());
 
             if(trailerAndReviewInfoMovie == null) {
-                allMovies.moveToFirst();
+                favMovies.moveToFirst();
                 dbMovieIdInsertDelete = (int)movieDisplay.getDbMovieId();
                 ArrayList<String> keys = new ArrayList<String>();
                 ArrayList<String> names = new ArrayList<String>();
                 ArrayList<String> authors = new ArrayList<String>();
                 ArrayList<String> contents = new ArrayList<String>();
                 do {
-                    String temp = allMovies.getString(allMovies.getColumnIndex(MovieTableConstants.KEY));
+                    String temp = favMovies.getString(favMovies.getColumnIndex(MovieTableConstants.KEY));
                     Log.d(LOG_TAG,"Key = "+temp);
                     if (keys.size() > 0) {
                         if (!keys.contains(temp)) {
@@ -415,7 +415,7 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
                         keys.add(temp);
                     }
 
-                    temp = allMovies.getString(allMovies.getColumnIndex(MovieTableConstants.NAME));
+                    temp = favMovies.getString(favMovies.getColumnIndex(MovieTableConstants.NAME));
                     Log.d(LOG_TAG,"Name = "+temp);
                     if (names.size() > 0) {
                         if (!names.contains(temp)) {
@@ -426,7 +426,7 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
                         names.add(temp);
                     }
 
-                    temp = allMovies.getString(allMovies.getColumnIndex(MovieTableConstants.AUTHOR));
+                    temp = favMovies.getString(favMovies.getColumnIndex(MovieTableConstants.AUTHOR));
                     Log.d(LOG_TAG,"Author = "+temp);
                     if (authors.size() > 0) {
                         if (!authors.contains(temp)) {
@@ -437,7 +437,7 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
                         authors.add(temp);
                     }
 
-                    temp = allMovies.getString(allMovies.getColumnIndex(MovieTableConstants.CONTENT));
+                    temp = favMovies.getString(favMovies.getColumnIndex(MovieTableConstants.CONTENT));
                     Log.d(LOG_TAG,"Content = "+temp);
                     if (contents.size() > 0) {
                         if (!contents.contains(temp)) {
@@ -447,7 +447,7 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
                     else if(contents.size() == 0){
                         contents.add(temp);
                     }
-                } while (allMovies.moveToNext());
+                } while (favMovies.moveToNext());
 
                 trailerAndReviewInfoMovie = new Movie((movieDisplay.getOriginalTitle()),null,(movieDisplay.getSynopsis()),
                         (movieDisplay.getUserRating()),(movieDisplay.getReleaseDate()),

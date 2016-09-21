@@ -19,7 +19,7 @@ public class MovieDBHelper extends SQLiteOpenHelper
     public static String LOG_TAG = MovieDBHelper.class.getName();
     public static String DATABASE_NAME = "favorites.db";
     private static int DATABASE_VERSION = 1;
-    public static String DB_PATH = "/data/data/com/nanodegree/project1/popularmovies/databases/";
+    public static String DB_PATH = "/data/data/com.nanodegree.project1.popularmovies/databases/";
     private final Context myContext;
 
     @Override
