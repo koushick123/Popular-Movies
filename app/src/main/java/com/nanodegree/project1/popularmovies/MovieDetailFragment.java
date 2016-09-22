@@ -333,6 +333,7 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
         super.onActivityCreated(savedInstanceState);
         Log.d(LOG_TAG,"==== onActivityCreated ===="+savedInstanceState);
         Log.d(LOG_TAG,"==== onActivityCreated ==== movieBundle === "+movieBundle);
+        Log.d(LOG_TAG,"==== onActivityCreated ==== trailerAndReviewInfoMovie === "+trailerAndReviewInfoMovie);
         if(trailerAndReviewInfoMovie != null)
         {
             displayMovieDetails(movieBundle);
@@ -399,13 +400,13 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
             else{
                 favStar.setImageResource(R.drawable.ic_star_border_black_24dp);
             }
-            Cursor favMovieTrailers = getActivity().getContentResolver().query(Uri.parse(MovieTableConstants.BASE_CONTENT_URI + "/movie_trailer_id/"+movieDisplay.getDbMovieId()),
-                    null, null, null, null);
-            Cursor favMovieReviews = getActivity().getContentResolver().query(Uri.parse(MovieTableConstants.BASE_CONTENT_URI + "/movie_review_id/"+movieDisplay.getDbMovieId()),
-                    null, null, null, null);
-            Log.d(LOG_TAG,"Movie DB ID == "+movieDisplay.getDbMovieId());
 
             if(trailerAndReviewInfoMovie == null) {
+                Cursor favMovieTrailers = getActivity().getContentResolver().query(Uri.parse(MovieTableConstants.BASE_CONTENT_URI + "/movie_trailer_id/"+movieDisplay.getDbMovieId()),
+                        null, null, null, null);
+                Cursor favMovieReviews = getActivity().getContentResolver().query(Uri.parse(MovieTableConstants.BASE_CONTENT_URI + "/movie_review_id/"+movieDisplay.getDbMovieId()),
+                        null, null, null, null);
+                Log.d(LOG_TAG,"Movie DB ID == "+movieDisplay.getDbMovieId());
                 favMovieTrailers.moveToFirst();
                 favMovieReviews.moveToFirst();
                 dbMovieIdInsertDelete = (int)movieDisplay.getDbMovieId();
