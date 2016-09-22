@@ -43,6 +43,7 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
     ImageView placeHolderImage;
     private ArrayList<Movie> allMovies;
     SharedPreferences sharedPrefs;
+    Boolean refresh;
     String oldSortOrder;
 
     @Nullable
@@ -67,6 +68,7 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
             ArrayList<Movie> movies = savedInstanceState.getParcelableArrayList("parcelMovies");
             Log.d(LOG_TAG,"load movies");
             oldSortOrder = savedInstanceState.getString("oldSortOrder");
+            refresh = savedInstanceState.getBoolean("refresh");
             if(!oldSortOrder.equalsIgnoreCase(getResources().getString(R.string.settings_order_by_favorites_value)))
             {
                 if(movies != null)
@@ -76,6 +78,16 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
                 else
                 {
                     checkAndLoadMovies();
+                }
+            }
+            else
+            {
+                if(movies != null) {
+                    updateMovies(movies);
+                }
+                else{
+                    allMovies = null;
+                    setEmptyListView(MovieConstants.NO_FAVORITES);
                 }
             }
         }
@@ -91,8 +103,14 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
                 }
                 else
                 {
+                    allMovies = null;
                     setEmptyListView(MovieConstants.NO_INT_CONN);
                 }
+            }
+            else
+            {
+                loadFavoriteMovies();
+                refresh = false;
             }
         }
     }
@@ -111,6 +129,11 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
         {
             Log.d(LOG_TAG, "Saving SORT ORDER before destruction..." + oldSortOrder);
             outState.putString("oldSortOrder",oldSortOrder);
+        }
+        if(refresh != null)
+        {
+            Log.d(LOG_TAG,"Refresh == "+refresh.booleanValue());
+            outState.putBoolean("refresh",refresh);
         }
         super.onSaveInstanceState(outState);
     }
@@ -188,12 +211,14 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
             }
             else
             {
+                allMovies = null;
                 setEmptyListView(MovieConstants.NO_INT_CONN);
             }
         }
-        else if(sortOrder.equalsIgnoreCase(getResources().getString(R.string.settings_order_by_favorites_value)))
+        else if(sortOrder.equalsIgnoreCase(getResources().getString(R.string.settings_order_by_favorites_value)) && refresh)
         {
             loadFavoriteMovies();
+            refresh = false;
         }
     }
 
@@ -259,6 +284,7 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
                     Log.d(LOG_TAG,"Movie DB ID == "+temp.getDbMovieId());
                     movieDetailIntent.putExtra("movieDetail",allMovies.get(position));
                     movieDetailIntent.putExtra("movieThumbnail",allMovies.get(position).getMovieThumbnail());
+                    refresh = true;
                     startActivity(movieDetailIntent);
                 }
             });
@@ -339,6 +365,7 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
         }
         else
         {
+            allMovies = null;
             setEmptyListView(MovieConstants.NO_INT_CONN);
         }
     }
@@ -374,6 +401,7 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
         Cursor favMovies = getActivity().getContentResolver().query(Uri.parse(MovieTableConstants.BASE_CONTENT_URI+"/allMovies"),null,null,null,null);
         Log.d(LOG_TAG,"FAv movie count === "+favMovies.getCount());
         if(favMovies.getCount() == 0){
+            allMovies = null;
             setEmptyListView(MovieConstants.NO_FAVORITES);
         }
         else{

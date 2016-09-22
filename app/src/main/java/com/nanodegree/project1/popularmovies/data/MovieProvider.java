@@ -21,15 +21,13 @@ public class MovieProvider extends ContentProvider
     private static SQLiteDatabase writeMovieDatabase;
     private static String LOG_TAG = MovieProvider.class.getName();
     private static final int GET_ALL_MOVIE = 100;
-    private static final int GET_MOVIE_WITH_ID = 200;
+    private static final int GET_MOVIE_TRAILER_WITH_ID = 200;
+    private static final int GET_MOVIE_REVIEW_WITH_ID = 1000;
     private static final int INSERT_MOVIE = 300;
     private static final int INSERT_MOVIE_TRAILER = 500;
     private static final int INSERT_MOVIE_REVIEW = 600;
     private static final int DELETE_MOVIE = 400;
-    //private static final int DELETE_MOVIE_REVIEW = 700;
-    //private static final int DELETE_MOVIE_TRAILER = 800;
     private static final int GET_MAX_MOVIE_ID = 900;
-    private static final int DROP_MOVIE_TABLE = 1000;
     private int MOVIE_ID = 1000;
     private int MOVIE_REVIEW_ID = 2000;
     private int MOVIE_TRAILER_ID = 3000;
@@ -39,12 +37,12 @@ public class MovieProvider extends ContentProvider
     static
     {
         sUriMatcher.addURI(MovieTableConstants.CONTENT_AUTHORITY,"/allMovies",GET_ALL_MOVIE);
-        sUriMatcher.addURI(MovieTableConstants.CONTENT_AUTHORITY,"/movie_id/#",GET_MOVIE_WITH_ID);
+        sUriMatcher.addURI(MovieTableConstants.CONTENT_AUTHORITY,"/movie_trailer_id/#",GET_MOVIE_TRAILER_WITH_ID);
+        sUriMatcher.addURI(MovieTableConstants.CONTENT_AUTHORITY,"/movie_review_id/#",GET_MOVIE_REVIEW_WITH_ID);
         sUriMatcher.addURI(MovieTableConstants.CONTENT_AUTHORITY,"/addMovie",INSERT_MOVIE);
         sUriMatcher.addURI(MovieTableConstants.CONTENT_AUTHORITY,"/addMovie/trailer",INSERT_MOVIE_TRAILER);
         sUriMatcher.addURI(MovieTableConstants.CONTENT_AUTHORITY,"/addMovie/review",INSERT_MOVIE_REVIEW);
         sUriMatcher.addURI(MovieTableConstants.CONTENT_AUTHORITY,"/deleteMovie/#",DELETE_MOVIE);
-        //sUriMatcher.addURI(MovieTableConstants.CONTENT_AUTHORITY,"/dropMovie/",DROP_MOVIE_TABLE);
         sUriMatcher.addURI(MovieTableConstants.CONTENT_AUTHORITY,"/getMaxMovieId/",GET_MAX_MOVIE_ID);
     }
 
@@ -67,7 +65,6 @@ public class MovieProvider extends ContentProvider
             if(writeMovieDatabase != null){
                 return writeMovieDatabase;
             }
-            //writeMovieDatabase = movieDBHelper.getWritableDatabase();
             Log.d(LOG_TAG,"DB Path == "+writeMovieDatabase.getPath());
         }
         return writeMovieDatabase;
@@ -81,14 +78,21 @@ public class MovieProvider extends ContentProvider
         int match = sUriMatcher.match(uri);
         switch (match)
         {
-            case GET_MOVIE_WITH_ID:
+            case GET_MOVIE_TRAILER_WITH_ID:
                 Log.d(LOG_TAG,String.valueOf(ContentUris.parseId(uri)));
 
-                getMovie = "SELECT  movie_rev.author, movie_rev.content " +
-                        "FROM movie_reviews movie_rev " +
-                        //"WHERE movie_trail._ID = movie_rev._ID " +
-                        "WHERE movie_rev._ID = "+"'"+ContentUris.parseId(uri)+"' ";
-                        //"AND movie_trail._ID = "+"'"+ContentUris.parseId(uri)+"'";
+                getMovie = "SELECT key, name " +
+                        "FROM movie_trailers " +
+                        "WHERE movie_trailers._ID = "+"'"+ContentUris.parseId(uri)+"'";
+                movie = getWriteMovieDatabase().rawQuery(getMovie, null);
+            break;
+
+            case GET_MOVIE_REVIEW_WITH_ID:
+                Log.d(LOG_TAG,String.valueOf(ContentUris.parseId(uri)));
+
+                getMovie = "SELECT author, content " +
+                        "FROM movie_reviews " +
+                        "WHERE movie_reviews._ID = "+"'"+ContentUris.parseId(uri)+"'";
                 movie = getWriteMovieDatabase().rawQuery(getMovie, null);
             break;
 
@@ -258,7 +262,6 @@ public class MovieProvider extends ContentProvider
                     }while (movie_exist.moveToNext());
                 }
                 movie_exist.close();
-                //getWriteMovieDatabase().close();
 
                 break;
         }
@@ -394,28 +397,12 @@ public class MovieProvider extends ContentProvider
                 }
 
                 break;
-
-            case DROP_MOVIE_TABLE:
-
-                /*String CREATE_TABLE_REVIEWS = "CREATE TABLE " + MovieTableConstants.MOVIE_REVIEWS_TABLE + " ( " +
-                        MovieTableConstants.MOVIE_REVIEW_ID + " INTEGER NOT NULL PRIMARY KEY , " +
-                        MovieTableConstants.ID + " INTEGER NOT NULL, "+
-                        MovieTableConstants.AUTHOR + " TEXT, "+
-                        MovieTableConstants.CONTENT + " TEXT, "+
-                        "FOREIGN KEY ( "+MovieTableConstants.ID +" ) "+" REFERENCES "+MovieTableConstants.MOVIE_TABLE+" ( "+MovieTableConstants.ID +" ) "+
-                        " ); ";
-                Log.d(LOG_TAG,CREATE_TABLE_REVIEWS);
-                getWriteMovieDatabase().execSQL(CREATE_TABLE_REVIEWS);
-                Log.d(LOG_TAG, "Created table Movie Review..");*/
-
-                break;
         }
         return 0;
     }
 
     @Override
     public int update(Uri uri, ContentValues contentValues, String s, String[] strings) {
-
         return 0;
     }
 }
