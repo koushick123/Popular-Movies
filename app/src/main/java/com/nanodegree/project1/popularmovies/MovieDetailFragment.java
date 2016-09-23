@@ -36,7 +36,6 @@ import com.squareup.picasso.Picasso;
 
 import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
-import java.util.Collections;
 
 public class MovieDetailFragment extends Fragment implements LoaderManager.LoaderCallbacks<Movie>
 {
@@ -442,11 +441,9 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
                         (movieDisplay.getUserRating()),(movieDisplay.getReleaseDate()),
                         (movieDisplay.getId()),(movieDisplay.getMovieThumbnail()),
                         movieDisplay.getDbMovieId());
-                Collections.reverse(contents);
                 trailerAndReviewInfoMovie.setContents(contents.toArray(new String[contents.size()]));
                 trailerAndReviewInfoMovie.setKey(keys.toArray(new String[keys.size()]));
                 trailerAndReviewInfoMovie.setTrailerName(names.toArray(new String[names.size()]));
-                Collections.reverse(authors);
                 trailerAndReviewInfoMovie.setAuthors(authors.toArray(new String[authors.size()]));
                 displayMovieDetails(movieBundle);
                 displayMovieTrailerAndReviewDetails(trailerAndReviewInfoMovie);
