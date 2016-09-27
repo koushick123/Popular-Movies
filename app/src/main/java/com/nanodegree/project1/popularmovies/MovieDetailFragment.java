@@ -86,11 +86,9 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
         {
             movieBundle = getArguments();
             movieDisplay = (Movie)movieBundle.getParcelable("movieDetail");
-            moviePoster = movieBundle.getByteArray("movieThumbnail");
             if(getPreferencesSetting().equalsIgnoreCase(getResources().getString(R.string.settings_order_by_favorites_value))) {
                 addedToFav = true;
             }
-            Log.d(LOG_TAG,movieBundle+"  oncreateview "+moviePoster);
         }
         else
         {
@@ -151,11 +149,13 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
                 ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
                 bitmap.compress(Bitmap.CompressFormat.JPEG,100,byteArrayOutputStream);
 
+                Log.d(LOG_TAG,"MOvie length == "+byteArrayOutputStream.size());
                 movie.put("thumbnail",byteArrayOutputStream.toByteArray());
                 movie.put("releaseDate",movieDisplay.getReleaseDate());
                 movie.put("userRating",movieDisplay.getUserRating());
                 movie.put("synopsis",movieDisplay.getSynopsis());
                 movie.put("movieID",movieDisplay.getId());
+
                 getActivity().getContentResolver().insert(Uri.parse(MovieTableConstants.BASE_CONTENT_URI+"/addMovie"),movie);
 
                 //Get Movie trailer
@@ -201,16 +201,6 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
                 dbMovieIdInsertDelete = max_movie_id.getInt(max_movie_id.getColumnIndex("MOVIE_ID"));
                 Log.d(LOG_TAG,"Added movie ID "+dbMovieIdInsertDelete+" to fav");
                 max_movie_id.close();
-
-                Cursor allMovies = getActivity().getContentResolver().query(Uri.parse(MovieTableConstants.BASE_CONTENT_URI+"/allMovies"), null, null, null, null);
-                allMovies.moveToFirst();
-                if(allMovies.getCount() > 0) {
-                    do
-                    {
-                        Log.d(LOG_TAG, "MOVIES ==== " + allMovies.getString(allMovies.getColumnIndex("heading")));
-                        Log.d(LOG_TAG, "MOVIES ID ==== " + allMovies.getInt(allMovies.getColumnIndex("_ID")));
-                    }while(allMovies.moveToNext());
-                }
 
                 Toast.makeText(getActivity().getApplicationContext(),"Added "+movieDisplay.getOriginalTitle().toUpperCase()+" to favorites",Toast.LENGTH_SHORT).show();
                 favStar.setImageResource(R.drawable.ic_grade_black_24dp);
@@ -488,10 +478,24 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
             Picasso.with(getActivity().getApplicationContext()).load(MovieConstants.BASE_PICASSO_URL + MovieConstants.IMAGE_SIZE + ((Movie) movie.getParcelable("movieDetail")).getPoster_path()).into(movieThumbnail);
         }
         else{
-            Bitmap movieBm = BitmapFactory.decodeByteArray(moviePoster,0,moviePoster.length);
+            Bitmap movieBm = null;
+            byte[] movieImage = null;
+            if(moviePoster == null) {
+                Cursor movieThumbnailCursor = getActivity().getContentResolver().query(Uri.parse(MovieTableConstants.BASE_CONTENT_URI + "/getMovieThumbnail/" + movieDisplay.getDbMovieId()),
+                        null, null, null, null);
+                movieThumbnailCursor.moveToFirst();
+                movieImage = movieThumbnailCursor.getBlob(movieThumbnailCursor.getColumnIndex(MovieTableConstants.THUMBNAIL));
+                moviePoster = movieImage;
+                movieThumbnailCursor.close();
+            }
+            else{
+                movieImage= moviePoster;
+            }
+            movieBm = BitmapFactory.decodeByteArray(movieImage, 0, movieImage.length);
+            movieThumbnail.setImageBitmap(movieBm);
             movieThumbnail.setScaleY(0.9F);
             movieThumbnail.setScaleX(0.9F);
-            movieThumbnail.setImageBitmap(movieBm);
+
         }
         movieReleaseDate.setText(((Movie)movie.getParcelable("movieDetail")).getReleaseDate());
         movieUserRating.setText(((Movie)movie.getParcelable("movieDetail")).getUserRating()+"/10");

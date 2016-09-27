@@ -280,10 +280,9 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
                     Log.d(LOG_TAG,"========Item clicked......");
                     Intent movieDetailIntent = new Intent(getActivity().getApplicationContext(),MovieDetailActivity.class);
                     Movie temp = allMovies.get(position);
-                    Log.d(LOG_TAG,"Movie thumbnail == "+temp.getMovieThumbnail());
+                    temp.setMovieThumbnail(null);
                     Log.d(LOG_TAG,"Movie DB ID == "+temp.getDbMovieId());
-                    movieDetailIntent.putExtra("movieDetail",allMovies.get(position));
-                    movieDetailIntent.putExtra("movieThumbnail",allMovies.get(position).getMovieThumbnail());
+                    movieDetailIntent.putExtra("movieDetail",temp);
                     refresh = true;
                     startActivity(movieDetailIntent);
                 }
@@ -416,7 +415,6 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
                 long dbId = favMovies.getLong(favMovies.getColumnIndex(MovieTableConstants.ID));
                 byte[] thumbnail = favMovies.getBlob(favMovies.getColumnIndex(MovieTableConstants.THUMBNAIL));
                 Movie dbMovies = new Movie(title,null,synopsis,userRating,releaseDate,Id,thumbnail,dbId);
-                Log.d(LOG_TAG,thumbnail+"");
                 myFavMovies.add(dbMovies);
             }while(favMovies.moveToNext());
             updateMovies(myFavMovies);

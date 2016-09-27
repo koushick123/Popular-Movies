@@ -39,7 +39,6 @@ public class MovieAdapter extends ArrayAdapter
     public View getView(int position, View convertView, ViewGroup parent) {
         View listItem = convertView;
         ViewHolderImage viewHolderImage;
-
         if(listItem == null)
         {
             listItem = LayoutInflater.from(getContext()).inflate(R.layout.movie_list_item,parent,false);

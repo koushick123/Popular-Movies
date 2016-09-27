@@ -2,12 +2,14 @@ package com.nanodegree.project1.popularmovies;
 
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.util.Log;
 
 /**
  * Created by Koushick on 30-08-2016.
  */
 public class Movie implements Parcelable{
 
+    private static String LOG_TAG = Movie.class.getName();
     private String originalTitle;
     private String poster_path;
     private byte[] movieThumbnail;
@@ -41,6 +43,7 @@ public class Movie implements Parcelable{
         releaseDate = in.readString();
         id = in.readLong();
         dbMovieId = in.readLong();
+        Log.d(LOG_TAG,this.movieThumbnail+"");
         if(this.movieThumbnail != null) {
             in.readByteArray(this.movieThumbnail);
         }
