@@ -59,6 +59,18 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
         return rootView;
     }
 
+    /**
+     * A callback interface that all activities containing this fragment must
+     * implement. This mechanism allows activities to be notified of item
+     * selections.
+     */
+    public interface Callback {
+        /**
+         * DetailFragmentCallback for when an item has been selected.
+         */
+        public void onItemSelected(Movie movieBundle);
+    }
+
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
@@ -271,20 +283,22 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
             setEmptyListView(MovieConstants.EMPTY_TEXT);
             final MovieAdapter adapter = new MovieAdapter(getActivity().getApplicationContext(), allMovies);
             movieListView.setAdapter(adapter);
-
+            Log.d(LOG_TAG,"activity 333 == "+getActivity());
             movieListView.setOnItemClickListener(new AdapterView.OnItemClickListener()
             {
                 @Override
                 public void onItemClick(AdapterView<?> adapterView, View view, int position, long l)
                 {
+                    Log.d(LOG_TAG,"activity 444 == "+getActivity());
                     Log.d(LOG_TAG,"========Item clicked......");
-                    Intent movieDetailIntent = new Intent(getActivity().getApplicationContext(),MovieDetailActivity.class);
+                    //Intent movieDetailIntent = new Intent(getActivity().getApplicationContext(),MovieDetailActivity.class);
                     Movie temp = allMovies.get(position);
                     temp.setMovieThumbnail(null);
                     Log.d(LOG_TAG,"Movie DB ID == "+temp.getDbMovieId());
-                    movieDetailIntent.putExtra("movieDetail",temp);
+                    ((Callback)getActivity()).onItemSelected(temp);
+                    //movieDetailIntent.putExtra("movieDetail",temp);
                     refresh = true;
-                    startActivity(movieDetailIntent);
+                    //startActivity(movieDetailIntent);
                 }
             });
         }

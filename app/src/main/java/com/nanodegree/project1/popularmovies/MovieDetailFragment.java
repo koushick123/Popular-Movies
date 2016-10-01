@@ -82,10 +82,13 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
         favStar = (ImageView)rootView.findViewById(R.id.favoriteStar);
         sharedPrefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
         line = (TableRow)rootView.findViewById(R.id.hr);
+
         if(savedInstanceState == null)
         {
             movieBundle = getArguments();
-            movieDisplay = (Movie)movieBundle.getParcelable("movieDetail");
+            if(movieBundle != null) {
+                movieDisplay = (Movie) movieBundle.getParcelable("movieDetail");
+            }
             if(getPreferencesSetting().equalsIgnoreCase(getResources().getString(R.string.settings_order_by_favorites_value))) {
                 addedToFav = true;
             }
@@ -95,7 +98,9 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
             addedToFav = savedInstanceState.getBoolean("addedToFav");
             dbMovieIdInsertDelete = savedInstanceState.getInt("selectedDbMovieId");
             movieBundle = savedInstanceState.getParcelable("movieInfo");
-            movieDisplay = ((Movie)movieBundle.getParcelable("movieDetail"));
+            if(movieBundle != null) {
+                movieDisplay = ((Movie) movieBundle.getParcelable("movieDetail"));
+            }
             moviePoster = savedInstanceState.getByteArray("movieThumbnailImage");
             trailerAndReviewInfoMovie = savedInstanceState.getParcelable("movieTrailer");
         }
@@ -323,7 +328,7 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
         Log.d(LOG_TAG,"==== onActivityCreated ===="+savedInstanceState);
         Log.d(LOG_TAG,"==== onActivityCreated ==== movieBundle === "+movieBundle);
         Log.d(LOG_TAG,"==== onActivityCreated ==== trailerAndReviewInfoMovie === "+trailerAndReviewInfoMovie);
-        if(trailerAndReviewInfoMovie != null)
+        if(trailerAndReviewInfoMovie != null && movieBundle != null)
         {
             displayMovieDetails(movieBundle);
             displayMovieTrailerAndReviewDetails(trailerAndReviewInfoMovie);
@@ -334,8 +339,12 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
             movieHeading.setVisibility(View.GONE);
             line.setVisibility(View.GONE);
             trailerHeading.setVisibility(View.GONE);
-            if(!getPreferencesSetting().equalsIgnoreCase(getResources().getString(R.string.settings_order_by_favorites_value))) {
+            if(!getPreferencesSetting().equalsIgnoreCase(getResources().getString(R.string.settings_order_by_favorites_value)) && movieBundle != null) {
                 checkAndLoadMovies();
+            }
+            else if (movieBundle == null){
+                Log.d(LOG_TAG,"Setting as empty 2222");
+                setEmptyListView("");
             }
         }
 
@@ -346,7 +355,7 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
             //Check if movie already added to DB, to set the favorite button accordingly
             Cursor allMovies = getActivity().getContentResolver().query(Uri.parse(MovieTableConstants.BASE_CONTENT_URI + "/allMovies"), null, null, null, null);
 
-            if (addedToFav == null) {
+            if (addedToFav == null && movieBundle != null) {
 
                 Log.d(LOG_TAG, allMovies.getCount() + "");
                 if (allMovies.getCount() == 0) {
@@ -390,7 +399,7 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
                 favStar.setImageResource(R.drawable.ic_star_border_black_24dp);
             }
 
-            if(trailerAndReviewInfoMovie == null) {
+            if(trailerAndReviewInfoMovie == null && movieBundle != null) {
                 Cursor favMovieTrailers = getActivity().getContentResolver().query(Uri.parse(MovieTableConstants.BASE_CONTENT_URI + "/movie_trailer_id/"+movieDisplay.getDbMovieId()),
                         null, null, null, null);
                 Cursor favMovieReviews = getActivity().getContentResolver().query(Uri.parse(MovieTableConstants.BASE_CONTENT_URI + "/movie_review_id/"+movieDisplay.getDbMovieId()),
@@ -438,6 +447,10 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
                 displayMovieDetails(movieBundle);
                 displayMovieTrailerAndReviewDetails(trailerAndReviewInfoMovie);
             }
+            else {
+                Log.d(LOG_TAG,"Setting as empty");
+                setEmptyListView("");
+            }
         }
         favStar.setOnClickListener(favStarListener);
     }
@@ -459,6 +472,11 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
         {
             placeHolderImage.setVisibility(View.VISIBLE);
             placeHolderImage.setImageResource(R.drawable.no_internet_connection_message);
+            movieDetails.setVisibility(View.INVISIBLE);
+        }
+        else
+        {
+            placeHolderImage.setVisibility(View.INVISIBLE);
             movieDetails.setVisibility(View.INVISIBLE);
         }
         spinner.setVisibility(View.INVISIBLE);

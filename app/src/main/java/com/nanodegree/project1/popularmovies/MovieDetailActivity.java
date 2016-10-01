@@ -12,10 +12,10 @@ public class MovieDetailActivity extends AppCompatActivity {
         setContentView(R.layout.activity_movie_detail);
 
         Log.d(MovieDetailActivity.class.getName(),"SAVED INSTANCE STATE == "+getIntent().getParcelableExtra("movieDetail"));
-        MovieDetailFragment movieDetailFragment = (MovieDetailFragment)getFragmentManager().findFragmentById(R.id.fragmentDetail);
-        if(movieDetailFragment == null)
+        //getFragmentManager().findFragmentById(R.id.movie_detail_container);
+        if(savedInstanceState == null)
         {
-            movieDetailFragment = new MovieDetailFragment();
+            MovieDetailFragment movieDetailFragment = new MovieDetailFragment();
             Bundle movie = new Bundle();
             movie.putParcelable("movieDetail",getIntent().getParcelableExtra("movieDetail"));
             movieDetailFragment.setArguments(movie);
