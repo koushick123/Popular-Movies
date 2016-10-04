@@ -2,11 +2,13 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:foreground="@drawable/ripple"
     >
     <ImageView
         android:layout_width="match_parent"
         android:layout_height="@dimen/moviePosterHeight"
         android:scaleType="fitXY"
-        android:id="@+id/moviePoster"/>
+        android:id="@+id/moviePoster"
+        android:padding="2dp"
+        android:background="@drawable/ripple"
+        />
 </FrameLayout>

@@ -281,7 +281,9 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
         {
             outState.putParcelable("movieTrailer",trailerAndReviewInfoMovie);
         }
-        outState.putBoolean("addedToFav",addedToFav.booleanValue());
+        if(addedToFav != null) {
+            outState.putBoolean("addedToFav", addedToFav.booleanValue());
+        }
         outState.putInt("selectedDbMovieId",dbMovieIdInsertDelete);
         outState.putByteArray("movieThumbnailImage",moviePoster);
         super.onSaveInstanceState(outState);
@@ -381,7 +383,7 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
                     } while (allMovies.moveToNext());
                     Log.d(LOG_TAG, "inside if");
                 }
-            } else if (addedToFav.booleanValue() == true) {
+            } else if (addedToFav != null && addedToFav.booleanValue() == true) {
 
                 Log.d(LOG_TAG, "movie exists " + dbMovieIdInsertDelete);
                 favStar.setImageResource(R.drawable.ic_grade_black_24dp);
