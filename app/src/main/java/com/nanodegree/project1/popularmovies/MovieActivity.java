@@ -59,6 +59,8 @@ public class MovieActivity extends AppCompatActivity implements MovieFragment.Ca
             MovieDetailFragment movieDetailFragment = new MovieDetailFragment();
             Bundle movie = new Bundle();
             movie.putParcelable("movieDetail",movieDetail);
+            movie.putBoolean("isTwoPane",new Boolean(mTwoPane));
+            movie.putBoolean("isSelected",new Boolean(true));
             movieDetailFragment.setArguments(movie);
             getFragmentManager().beginTransaction()
                     .replace(R.id.fragmentDetail, movieDetailFragment, null)
@@ -67,6 +69,7 @@ public class MovieActivity extends AppCompatActivity implements MovieFragment.Ca
         else{
             Intent movieDetailActivity = new Intent(this, MovieDetailActivity.class);
             movieDetailActivity.putExtra("movieDetail",movieDetail);
+            movieDetailActivity.putExtra("isTwoPane",mTwoPane);
             startActivity(movieDetailActivity);
         }
     }

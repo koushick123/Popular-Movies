@@ -8,8 +8,8 @@
     <dimen name="moviePosterWidth">185dp</dimen>
     <dimen name="movieThumbnailHeight">150dp</dimen>
     <dimen name="movieThumbnailWidth">95dp</dimen>
-    <dimen name="trailerAndReviewHeadingTextSize">10sp</dimen>
-    <dimen name="trailerAndReviewTextSize">7sp</dimen>
+    <dimen name="trailerAndReviewHeadingTextSize">20sp</dimen>
+    <dimen name="trailerAndReviewTextSize">14sp</dimen>
 
     <dimen name="movieHeadingPadLeft">16dp</dimen>
     <dimen name="movieHeadingPadRight">16dp</dimen>

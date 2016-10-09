@@ -18,10 +18,4 @@
         <!-- Here it's a stub.  In screens of sufficient width, this style includes modifications
              for two-pane layout -->
     </style>
-
-    <style name="myImageView">
-        <!-- 2dp so the background border to be visible -->
-        <item name="android:padding">3dp</item>
-        <item name="android:scaleType">fitCenter</item>
-    </style>
 </resources>

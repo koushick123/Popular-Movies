@@ -62,6 +62,9 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
     Movie movieDisplay;
     TableRow line;
     byte[] moviePoster;
+    String oldSortOrder;
+    Boolean tabletMode;
+    Boolean isSelected;
 
     @Nullable
     @Override
@@ -88,6 +91,30 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
             movieBundle = getArguments();
             if(movieBundle != null) {
                 movieDisplay = (Movie) movieBundle.getParcelable("movieDetail");
+                if(((Boolean)movieBundle.getBoolean("isTwoPane")) != null) {
+                    tabletMode = (Boolean) movieBundle.getBoolean("isTwoPane");
+                    Log.d(LOG_TAG,"Tab mode == "+tabletMode.booleanValue());
+                }
+                else{
+                    tabletMode = false;
+                    Log.d(LOG_TAG,"NOT Tab mode == "+tabletMode.booleanValue());
+                }
+
+                if(((Boolean)movieBundle.getBoolean("isSelected")) != null) {
+                    isSelected = (Boolean) movieBundle.getBoolean("isSelected");
+                    Log.d(LOG_TAG,"Is selected == "+isSelected.booleanValue());
+                }
+                else{
+                    isSelected = false;
+                    Log.d(LOG_TAG,"NOT Is selected == "+isSelected.booleanValue());
+                }
+            }
+            else{
+                //If movieBundle is null and we get a request upto here, then the device is a tablet.
+                tabletMode = true;
+                isSelected = false;
+                Log.d(LOG_TAG,"NOT Is selected 22 == "+isSelected.booleanValue());
+                Log.d(LOG_TAG,"NOT Tab mode 22== "+tabletMode.booleanValue());
             }
             if(getPreferencesSetting().equalsIgnoreCase(getResources().getString(R.string.settings_order_by_favorites_value))) {
                 addedToFav = true;
@@ -98,6 +125,8 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
             addedToFav = savedInstanceState.getBoolean("addedToFav");
             dbMovieIdInsertDelete = savedInstanceState.getInt("selectedDbMovieId");
             movieBundle = savedInstanceState.getParcelable("movieInfo");
+            tabletMode = savedInstanceState.getBoolean("tabletMode");
+            isSelected = savedInstanceState.getBoolean("isSelected");
             if(movieBundle != null) {
                 movieDisplay = ((Movie) movieBundle.getParcelable("movieDetail"));
             }
@@ -127,12 +156,25 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
     public void onResume() {
         super.onResume();
         Log.d(LOG_TAG,"onResume ==>"+trailerAndReviewInfoMovie);
-        Log.d(LOG_TAG,"resume preference setting == "+getPreferencesSetting());
-        if(trailerAndReviewInfoMovie == null && !getPreferencesSetting().equalsIgnoreCase(getResources().getString(R.string.settings_order_by_favorites_value)))
-        {
-            if(checkIfInternetIsAvailable())
-            {
-                checkIfMoviesNeedToBeRefreshed();
+        String sortOrder = getPreferencesSetting();
+        Log.d(LOG_TAG,"Sort Order -> "+sortOrder);
+        Log.d(LOG_TAG,"Old Sort Order -> "+oldSortOrder);
+        Log.d(LOG_TAG,"is movie selected -> "+isSelected);
+        Log.d(LOG_TAG,"Tablet mode -> "+tabletMode);
+        //If the sort settings change, don't show any movie. Set the selection to false.
+        if(!oldSortOrder.equalsIgnoreCase(sortOrder) || isSelected == null){
+            isSelected=false;
+        }
+        Log.d(LOG_TAG,"is movie selected after -> "+isSelected);
+        if((tabletMode != null && tabletMode.booleanValue()) && (isSelected != null && !isSelected.booleanValue())){// && !oldSortOrder.equalsIgnoreCase(sortOrder)){
+            setEmptyListView(MovieConstants.NO_MOVIE);
+            //oldSortOrder = sortOrder;
+        }
+        else {
+            if (trailerAndReviewInfoMovie == null && !sortOrder.equalsIgnoreCase(getResources().getString(R.string.settings_order_by_favorites_value))) {
+                if (checkIfInternetIsAvailable()) {
+                    checkIfMoviesNeedToBeRefreshed();
+                }
             }
         }
     }
@@ -239,8 +281,12 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
                         Log.d(LOG_TAG, "" + networkInfo.getState());
                         Log.d(LOG_TAG,"listView -> "+trailerAndReviewList);
                         Log.d(LOG_TAG,"Preference setting == "+getPreferencesSetting());
-                        if (networkInfo.getState() == NetworkInfo.State.CONNECTED && !getPreferencesSetting().equalsIgnoreCase(getResources().getString(R.string.settings_order_by_favorites_value)))
+                        Log.d(LOG_TAG,"Is selected receiver == "+isSelected.booleanValue());
+                        Log.d(LOG_TAG,"Tab mode receiver == "+tabletMode.booleanValue());
+                        if (networkInfo.getState() == NetworkInfo.State.CONNECTED && !getPreferencesSetting().equalsIgnoreCase(getResources().getString(R.string.settings_order_by_favorites_value))
+                                && ((tabletMode.booleanValue() && isSelected.booleanValue()) || !tabletMode.booleanValue()))
                         {
+                            Log.d(LOG_TAG,"Refreshing movies....");
                             checkIfMoviesNeedToBeRefreshed();
                         }
                     }
@@ -283,6 +329,20 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
         }
         if(addedToFav != null) {
             outState.putBoolean("addedToFav", addedToFav.booleanValue());
+        }
+        //Save the old sort order , to get it back when fragment is resumed.
+        oldSortOrder = getPreferencesSetting();
+        if(oldSortOrder != null)
+        {
+            Log.d(LOG_TAG, "Saving SORT ORDER before destruction..." + oldSortOrder);
+            outState.putString("oldSortOrder",oldSortOrder);
+        }
+        Log.d(LOG_TAG,"Movie selection saved == "+isSelected);
+        if(isSelected != null){
+            outState.putBoolean("isSelected",isSelected);
+        }
+        if(tabletMode != null){
+            outState.putBoolean("tabletMode",tabletMode);
         }
         outState.putInt("selectedDbMovieId",dbMovieIdInsertDelete);
         outState.putByteArray("movieThumbnailImage",moviePoster);
@@ -330,6 +390,20 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
         Log.d(LOG_TAG,"==== onActivityCreated ===="+savedInstanceState);
         Log.d(LOG_TAG,"==== onActivityCreated ==== movieBundle === "+movieBundle);
         Log.d(LOG_TAG,"==== onActivityCreated ==== trailerAndReviewInfoMovie === "+trailerAndReviewInfoMovie);
+        if(savedInstanceState != null){
+            oldSortOrder = savedInstanceState.getString("oldSortOrder");
+        }
+        else{
+            oldSortOrder = getPreferencesSetting();
+            if(movieBundle != null){
+                tabletMode = (Boolean)movieBundle.getBoolean("isTwoPane");
+                if(tabletMode != null && tabletMode.booleanValue()) {
+                    isSelected = (Boolean) movieBundle.getBoolean("isSelected");
+                }
+                Log.d(LOG_TAG,"Tab mode == "+tabletMode);
+                Log.d(LOG_TAG,"Selected == "+isSelected);
+            }
+        }
         if(trailerAndReviewInfoMovie != null && movieBundle != null)
         {
             displayMovieDetails(movieBundle);
@@ -347,6 +421,7 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
             else if (movieBundle == null){
                 Log.d(LOG_TAG,"Setting as empty 2222");
                 setEmptyListView("");
+                return;
             }
         }
 
@@ -476,10 +551,11 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
             placeHolderImage.setImageResource(R.drawable.no_internet_connection_message);
             movieDetails.setVisibility(View.INVISIBLE);
         }
-        else
+        else if(msg.equalsIgnoreCase(MovieConstants.NO_MOVIE))
         {
             placeHolderImage.setVisibility(View.INVISIBLE);
             movieDetails.setVisibility(View.INVISIBLE);
+            Log.d(LOG_TAG,"Visibility ==> "+movieDetails.getVisibility());
         }
         spinner.setVisibility(View.INVISIBLE);
     }

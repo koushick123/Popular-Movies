@@ -272,6 +272,7 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
         if(movies != null && movies.size() > 0)
         {
             int orientation = getActivity().getApplicationContext().getResources().getConfiguration().orientation;
+
             if(orientation == Configuration.ORIENTATION_LANDSCAPE)
             {
                 movieListView.setNumColumns(3);

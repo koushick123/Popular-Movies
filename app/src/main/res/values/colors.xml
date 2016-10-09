@@ -12,5 +12,5 @@
     <color name="image_border_end">#FF660000</color>
     <color name="image_border_center">#FFFF3333</color>
 
-    <color name="movie_selected">#f78604</color>
+    <color name="movie_selected">#eff704</color>
 </resources>
