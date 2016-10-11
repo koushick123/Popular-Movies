@@ -8,6 +8,7 @@
         android:layout_height="@dimen/moviePosterHeight"
         android:scaleType="fitXY"
         android:id="@+id/moviePoster"
+        android:padding="2dp"
         android:background="@drawable/ripple"
         />
 </FrameLayout>

@@ -85,12 +85,14 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
         favStar = (ImageView)rootView.findViewById(R.id.favoriteStar);
         sharedPrefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
         line = (TableRow)rootView.findViewById(R.id.hr);
+        Log.d(LOG_TAG,"onCreateView for Movie Detail");
 
         if(savedInstanceState == null)
         {
             movieBundle = getArguments();
             if(movieBundle != null) {
                 movieDisplay = (Movie) movieBundle.getParcelable("movieDetail");
+                oldSortOrder = getPreferencesSetting();
                 if(((Boolean)movieBundle.getBoolean("isTwoPane")) != null) {
                     tabletMode = (Boolean) movieBundle.getBoolean("isTwoPane");
                     Log.d(LOG_TAG,"Tab mode == "+tabletMode.booleanValue());
@@ -112,9 +114,35 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
             else{
                 //If movieBundle is null and we get a request upto here, then the device is a tablet.
                 tabletMode = true;
-                isSelected = false;
-                Log.d(LOG_TAG,"NOT Is selected 22 == "+isSelected.booleanValue());
-                Log.d(LOG_TAG,"NOT Tab mode 22== "+tabletMode.booleanValue());
+                Movie movieSelected = ((MovieSelect)getActivity().getApplication()).getMovieInfo();
+                movieBundle = ((MovieSelect)getActivity().getApplication()).getMovieBund();
+                movieDisplay = movieSelected;
+                Log.d(LOG_TAG,"Movie selected === "+movieSelected);
+                Log.d(LOG_TAG,"Movie bundle selected === "+movieBundle);
+                String sortOrder = getPreferencesSetting();
+                Log.d(LOG_TAG,"Sort order === "+sortOrder);
+                oldSortOrder = ((MovieSelect)getActivity().getApplication()).getMovieSetting();
+                Log.d(LOG_TAG,"Old Sort order === "+oldSortOrder);
+                if(movieSelected == null || movieBundle == null){
+                    isSelected = false;
+                    if(oldSortOrder == null) {
+                        oldSortOrder = sortOrder;
+                    }
+                }
+                else if(oldSortOrder.equalsIgnoreCase(sortOrder)){
+                    isSelected = true;
+                    trailerAndReviewInfoMovie = new Movie(movieSelected.getOriginalTitle(),movieSelected.getPoster_path(),movieSelected.getSynopsis(),movieSelected.getUserRating(),
+                            movieSelected.getReleaseDate(),movieSelected.getId(),movieSelected.getMovieThumbnail(),movieSelected.getDbMovieId());
+                    trailerAndReviewInfoMovie.setAuthors(movieSelected.getAuthors());
+                    trailerAndReviewInfoMovie.setContents(movieSelected.getContents());
+                    trailerAndReviewInfoMovie.setKey(movieSelected.getKey());
+                    trailerAndReviewInfoMovie.setTrailerName(movieSelected.getTrailerName());
+                }
+                else{
+                    isSelected = false;
+                }
+                Log.d(LOG_TAG,"Is selected 22 == "+isSelected.booleanValue());
+                Log.d(LOG_TAG,"Tab mode 22== "+tabletMode.booleanValue());
             }
             if(getPreferencesSetting().equalsIgnoreCase(getResources().getString(R.string.settings_order_by_favorites_value))) {
                 addedToFav = true;
@@ -319,31 +347,51 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
     public void onSaveInstanceState(Bundle outState)
     {
         Log.d(LOG_TAG,"OnSaveInstanceState == "+movieBundle+"");
+        Movie temp = null;
         if(movieBundle != null)
         {
             outState.putParcelable("movieInfo",movieBundle);
+            temp = (Movie) movieBundle.getParcelable("movieDetail");
         }
+
         if(trailerAndReviewInfoMovie != null)
         {
             outState.putParcelable("movieTrailer",trailerAndReviewInfoMovie);
+            if(temp != null){
+                temp.setTrailerName(trailerAndReviewInfoMovie.getTrailerName());
+                temp.setKey(trailerAndReviewInfoMovie.getKey());
+                temp.setContents(trailerAndReviewInfoMovie.getContents());
+                temp.setAuthors(trailerAndReviewInfoMovie.getAuthors());
+            }
         }
+
+        if(tabletMode != null && tabletMode.booleanValue()) {
+            ((MovieSelect) getActivity().getApplication()).setMovieInfo(temp);
+            ((MovieSelect) getActivity().getApplication()).setMovieBund(movieBundle);
+        }
+
         if(addedToFav != null) {
             outState.putBoolean("addedToFav", addedToFav.booleanValue());
         }
+
         //Save the old sort order , to get it back when fragment is resumed.
         oldSortOrder = getPreferencesSetting();
         if(oldSortOrder != null)
         {
             Log.d(LOG_TAG, "Saving SORT ORDER before destruction..." + oldSortOrder);
             outState.putString("oldSortOrder",oldSortOrder);
+            ((MovieSelect) getActivity().getApplication()).setMovieSetting(oldSortOrder);
         }
+
         Log.d(LOG_TAG,"Movie selection saved == "+isSelected);
         if(isSelected != null){
             outState.putBoolean("isSelected",isSelected);
         }
+
         if(tabletMode != null){
             outState.putBoolean("tabletMode",tabletMode);
         }
+
         outState.putInt("selectedDbMovieId",dbMovieIdInsertDelete);
         outState.putByteArray("movieThumbnailImage",moviePoster);
         super.onSaveInstanceState(outState);
@@ -393,35 +441,36 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
         if(savedInstanceState != null){
             oldSortOrder = savedInstanceState.getString("oldSortOrder");
         }
-        else{
-            oldSortOrder = getPreferencesSetting();
-            if(movieBundle != null){
-                tabletMode = (Boolean)movieBundle.getBoolean("isTwoPane");
-                if(tabletMode != null && tabletMode.booleanValue()) {
-                    isSelected = (Boolean) movieBundle.getBoolean("isSelected");
-                }
-                Log.d(LOG_TAG,"Tab mode == "+tabletMode);
-                Log.d(LOG_TAG,"Selected == "+isSelected);
-            }
-        }
-        if(trailerAndReviewInfoMovie != null && movieBundle != null)
+        if(tabletMode.booleanValue())
         {
-            displayMovieDetails(movieBundle);
-            displayMovieTrailerAndReviewDetails(trailerAndReviewInfoMovie);
+            if(isSelected && trailerAndReviewInfoMovie != null && movieBundle != null) {
+                Log.d(LOG_TAG,"display selected movie");
+                displayMovieDetails(movieBundle);
+                displayMovieTrailerAndReviewDetails(trailerAndReviewInfoMovie);
+            }
+            else if(isSelected && trailerAndReviewInfoMovie == null && movieBundle != null)
+            {
+                hideTopMovieInfo();
+                Log.d(LOG_TAG,"load selected movie");
+                checkAndLoadMovies();
+            }
+            else if(movieBundle == null)
+            {
+                setEmptyListView(MovieConstants.NO_DATA_FOUND);
+                return;
+            }
+            else if(!isSelected)
+            {
+                Log.d(LOG_TAG,"Setting as empty 1111");
+                setEmptyListView(MovieConstants.NO_MOVIE);
+                return;
+            }
         }
         else
         {
-            favStar.setVisibility(View.GONE);
-            movieHeading.setVisibility(View.GONE);
-            line.setVisibility(View.GONE);
-            trailerHeading.setVisibility(View.GONE);
-            if(!getPreferencesSetting().equalsIgnoreCase(getResources().getString(R.string.settings_order_by_favorites_value)) && movieBundle != null) {
+            hideTopMovieInfo();
+            if(!getPreferencesSetting().equalsIgnoreCase(getResources().getString(R.string.settings_order_by_favorites_value))) {
                 checkAndLoadMovies();
-            }
-            else if (movieBundle == null){
-                Log.d(LOG_TAG,"Setting as empty 2222");
-                setEmptyListView("");
-                return;
             }
         }
 
@@ -489,28 +538,34 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
                 ArrayList<String> names = new ArrayList<String>();
                 ArrayList<String> authors = new ArrayList<String>();
                 ArrayList<String> contents = new ArrayList<String>();
-                if(favMovieTrailers.getCount() > 0) {
-                    do {
-                        String temp = favMovieTrailers.getString(favMovieTrailers.getColumnIndex(MovieTableConstants.KEY));
-                        Log.d(LOG_TAG, "Key = " + temp);
-                        keys.add(temp);
+                try {
+                    if (favMovieTrailers.getCount() > 0) {
+                        do {
+                            String temp = favMovieTrailers.getString(favMovieTrailers.getColumnIndex(MovieTableConstants.KEY));
+                            Log.d(LOG_TAG, "Key = " + temp);
+                            keys.add(temp);
 
-                        temp = favMovieTrailers.getString(favMovieTrailers.getColumnIndex(MovieTableConstants.NAME));
-                        Log.d(LOG_TAG, "Name = " + temp);
-                        names.add(temp);
-                    } while (favMovieTrailers.moveToNext());
+                            temp = favMovieTrailers.getString(favMovieTrailers.getColumnIndex(MovieTableConstants.NAME));
+                            Log.d(LOG_TAG, "Name = " + temp);
+                            names.add(temp);
+                        } while (favMovieTrailers.moveToNext());
+                    }
+
+                    if (favMovieReviews.getCount() > 0) {
+                        do {
+                            String temp = favMovieReviews.getString(favMovieReviews.getColumnIndex(MovieTableConstants.AUTHOR));
+                            Log.d(LOG_TAG, "Author = " + temp);
+                            authors.add(temp);
+
+                            temp = favMovieReviews.getString(favMovieReviews.getColumnIndex(MovieTableConstants.CONTENT));
+                            Log.d(LOG_TAG, "Content = " + temp);
+                            contents.add(temp);
+                        } while (favMovieReviews.moveToNext());
+                    }
                 }
-
-                if(favMovieReviews.getCount() > 0) {
-                    do{
-                        String temp = favMovieReviews.getString(favMovieReviews.getColumnIndex(MovieTableConstants.AUTHOR));
-                        Log.d(LOG_TAG, "Author = " + temp);
-                        authors.add(temp);
-
-                        temp = favMovieReviews.getString(favMovieReviews.getColumnIndex(MovieTableConstants.CONTENT));
-                        Log.d(LOG_TAG, "Content = " + temp);
-                        contents.add(temp);
-                    } while (favMovieReviews.moveToNext());
+                finally {
+                    favMovieReviews.close();
+                    favMovieTrailers.close();
                 }
 
                 trailerAndReviewInfoMovie = new Movie((movieDisplay.getOriginalTitle()),null,(movieDisplay.getSynopsis()),
@@ -526,7 +581,7 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
             }
             else {
                 Log.d(LOG_TAG,"Setting as empty");
-                setEmptyListView("");
+                setEmptyListView(MovieConstants.NO_MOVIE);
             }
         }
         favStar.setOnClickListener(favStarListener);
@@ -817,5 +872,13 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
         return sharedPrefs.getString(
                 getString(R.string.settings_order_by_key),
                 getString(R.string.settings_order_by_default));
+    }
+
+    private void hideTopMovieInfo()
+    {
+        favStar.setVisibility(View.GONE);
+        movieHeading.setVisibility(View.GONE);
+        line.setVisibility(View.GONE);
+        trailerHeading.setVisibility(View.GONE);
     }
 }
