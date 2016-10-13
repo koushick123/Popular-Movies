@@ -133,13 +133,24 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
                     isSelected = true;
                     trailerAndReviewInfoMovie = new Movie(movieSelected.getOriginalTitle(),movieSelected.getPoster_path(),movieSelected.getSynopsis(),movieSelected.getUserRating(),
                             movieSelected.getReleaseDate(),movieSelected.getId(),movieSelected.getMovieThumbnail(),movieSelected.getDbMovieId());
-                    trailerAndReviewInfoMovie.setAuthors(movieSelected.getAuthors());
-                    trailerAndReviewInfoMovie.setContents(movieSelected.getContents());
-                    trailerAndReviewInfoMovie.setKey(movieSelected.getKey());
-                    trailerAndReviewInfoMovie.setTrailerName(movieSelected.getTrailerName());
+                    if(movieSelected.getAuthors() != null && movieSelected.getContents() != null && movieSelected.getKey() != null && movieSelected.getTrailerName() != null) {
+                        trailerAndReviewInfoMovie.setAuthors(movieSelected.getAuthors());
+                        trailerAndReviewInfoMovie.setContents(movieSelected.getContents());
+                        trailerAndReviewInfoMovie.setKey(movieSelected.getKey());
+                        trailerAndReviewInfoMovie.setTrailerName(movieSelected.getTrailerName());
+                    }
+                    else{
+                        trailerAndReviewInfoMovie = null;
+                    }
                 }
                 else{
                     isSelected = false;
+                }
+
+                if(!isSelected){
+                    Log.d(LOG_TAG,"setting movie select to NULL");
+                    ((MovieSelect) getActivity().getApplication()).setMovieInfo(null);
+                    ((MovieSelect) getActivity().getApplication()).setMovieBund(null);
                 }
                 Log.d(LOG_TAG,"Is selected 22 == "+isSelected.booleanValue());
                 Log.d(LOG_TAG,"Tab mode 22== "+tabletMode.booleanValue());
@@ -365,7 +376,9 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
             }
         }
 
-        if(tabletMode != null && tabletMode.booleanValue()) {
+        if(tabletMode != null && tabletMode.booleanValue() && isSelected.booleanValue()) {
+            Log.d(LOG_TAG,temp+"");
+            Log.d(LOG_TAG,movieBundle+"");
             ((MovieSelect) getActivity().getApplication()).setMovieInfo(temp);
             ((MovieSelect) getActivity().getApplication()).setMovieBund(movieBundle);
         }
@@ -438,6 +451,7 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
         Log.d(LOG_TAG,"==== onActivityCreated ===="+savedInstanceState);
         Log.d(LOG_TAG,"==== onActivityCreated ==== movieBundle === "+movieBundle);
         Log.d(LOG_TAG,"==== onActivityCreated ==== trailerAndReviewInfoMovie === "+trailerAndReviewInfoMovie);
+        boolean alreadyDisplayed = false;
         if(savedInstanceState != null){
             oldSortOrder = savedInstanceState.getString("oldSortOrder");
         }
@@ -447,6 +461,7 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
                 Log.d(LOG_TAG,"display selected movie");
                 displayMovieDetails(movieBundle);
                 displayMovieTrailerAndReviewDetails(trailerAndReviewInfoMovie);
+                alreadyDisplayed = true;
             }
             else if(isSelected && trailerAndReviewInfoMovie == null && movieBundle != null)
             {
@@ -525,63 +540,63 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
                 favStar.setImageResource(R.drawable.ic_star_border_black_24dp);
             }
 
-            if(trailerAndReviewInfoMovie == null && movieBundle != null) {
-                Cursor favMovieTrailers = getActivity().getContentResolver().query(Uri.parse(MovieTableConstants.BASE_CONTENT_URI + "/movie_trailer_id/"+movieDisplay.getDbMovieId()),
-                        null, null, null, null);
-                Cursor favMovieReviews = getActivity().getContentResolver().query(Uri.parse(MovieTableConstants.BASE_CONTENT_URI + "/movie_review_id/"+movieDisplay.getDbMovieId()),
-                        null, null, null, null);
-                Log.d(LOG_TAG,"Movie DB ID == "+movieDisplay.getDbMovieId());
-                favMovieTrailers.moveToFirst();
-                favMovieReviews.moveToFirst();
-                dbMovieIdInsertDelete = (int)movieDisplay.getDbMovieId();
-                ArrayList<String> keys = new ArrayList<String>();
-                ArrayList<String> names = new ArrayList<String>();
-                ArrayList<String> authors = new ArrayList<String>();
-                ArrayList<String> contents = new ArrayList<String>();
-                try {
-                    if (favMovieTrailers.getCount() > 0) {
-                        do {
-                            String temp = favMovieTrailers.getString(favMovieTrailers.getColumnIndex(MovieTableConstants.KEY));
-                            Log.d(LOG_TAG, "Key = " + temp);
-                            keys.add(temp);
+            if(!alreadyDisplayed) {
+                if (trailerAndReviewInfoMovie == null && movieBundle != null) {
+                    Cursor favMovieTrailers = getActivity().getContentResolver().query(Uri.parse(MovieTableConstants.BASE_CONTENT_URI + "/movie_trailer_id/" + movieDisplay.getDbMovieId()),
+                            null, null, null, null);
+                    Cursor favMovieReviews = getActivity().getContentResolver().query(Uri.parse(MovieTableConstants.BASE_CONTENT_URI + "/movie_review_id/" + movieDisplay.getDbMovieId()),
+                            null, null, null, null);
+                    Log.d(LOG_TAG, "Movie DB ID == " + movieDisplay.getDbMovieId());
+                    favMovieTrailers.moveToFirst();
+                    favMovieReviews.moveToFirst();
+                    dbMovieIdInsertDelete = (int) movieDisplay.getDbMovieId();
+                    ArrayList<String> keys = new ArrayList<String>();
+                    ArrayList<String> names = new ArrayList<String>();
+                    ArrayList<String> authors = new ArrayList<String>();
+                    ArrayList<String> contents = new ArrayList<String>();
+                    try {
+                        if (favMovieTrailers.getCount() > 0) {
+                            do {
+                                String temp = favMovieTrailers.getString(favMovieTrailers.getColumnIndex(MovieTableConstants.KEY));
+                                Log.d(LOG_TAG, "Key = " + temp);
+                                keys.add(temp);
 
-                            temp = favMovieTrailers.getString(favMovieTrailers.getColumnIndex(MovieTableConstants.NAME));
-                            Log.d(LOG_TAG, "Name = " + temp);
-                            names.add(temp);
-                        } while (favMovieTrailers.moveToNext());
+                                temp = favMovieTrailers.getString(favMovieTrailers.getColumnIndex(MovieTableConstants.NAME));
+                                Log.d(LOG_TAG, "Name = " + temp);
+                                names.add(temp);
+                            } while (favMovieTrailers.moveToNext());
+                        }
+
+                        if (favMovieReviews.getCount() > 0) {
+                            do {
+                                String temp = favMovieReviews.getString(favMovieReviews.getColumnIndex(MovieTableConstants.AUTHOR));
+                                Log.d(LOG_TAG, "Author = " + temp);
+                                authors.add(temp);
+
+                                temp = favMovieReviews.getString(favMovieReviews.getColumnIndex(MovieTableConstants.CONTENT));
+                                Log.d(LOG_TAG, "Content = " + temp);
+                                contents.add(temp);
+                            } while (favMovieReviews.moveToNext());
+                        }
+                    } finally {
+                        favMovieReviews.close();
+                        favMovieTrailers.close();
                     }
 
-                    if (favMovieReviews.getCount() > 0) {
-                        do {
-                            String temp = favMovieReviews.getString(favMovieReviews.getColumnIndex(MovieTableConstants.AUTHOR));
-                            Log.d(LOG_TAG, "Author = " + temp);
-                            authors.add(temp);
-
-                            temp = favMovieReviews.getString(favMovieReviews.getColumnIndex(MovieTableConstants.CONTENT));
-                            Log.d(LOG_TAG, "Content = " + temp);
-                            contents.add(temp);
-                        } while (favMovieReviews.moveToNext());
-                    }
+                    trailerAndReviewInfoMovie = new Movie((movieDisplay.getOriginalTitle()), null, (movieDisplay.getSynopsis()),
+                            (movieDisplay.getUserRating()), (movieDisplay.getReleaseDate()),
+                            (movieDisplay.getId()), (movieDisplay.getMovieThumbnail()),
+                            movieDisplay.getDbMovieId());
+                    trailerAndReviewInfoMovie.setContents(contents.toArray(new String[contents.size()]));
+                    trailerAndReviewInfoMovie.setKey(keys.toArray(new String[keys.size()]));
+                    trailerAndReviewInfoMovie.setTrailerName(names.toArray(new String[names.size()]));
+                    trailerAndReviewInfoMovie.setAuthors(authors.toArray(new String[authors.size()]));
+                    displayMovieDetails(movieBundle);
+                    displayMovieTrailerAndReviewDetails(trailerAndReviewInfoMovie);
+                } else {
+                    Log.d(LOG_TAG, "Setting as empty");
+                    setEmptyListView(MovieConstants.NO_MOVIE);
                 }
-                finally {
-                    favMovieReviews.close();
-                    favMovieTrailers.close();
-                }
-
-                trailerAndReviewInfoMovie = new Movie((movieDisplay.getOriginalTitle()),null,(movieDisplay.getSynopsis()),
-                        (movieDisplay.getUserRating()),(movieDisplay.getReleaseDate()),
-                        (movieDisplay.getId()),(movieDisplay.getMovieThumbnail()),
-                        movieDisplay.getDbMovieId());
-                trailerAndReviewInfoMovie.setContents(contents.toArray(new String[contents.size()]));
-                trailerAndReviewInfoMovie.setKey(keys.toArray(new String[keys.size()]));
-                trailerAndReviewInfoMovie.setTrailerName(names.toArray(new String[names.size()]));
-                trailerAndReviewInfoMovie.setAuthors(authors.toArray(new String[authors.size()]));
-                displayMovieDetails(movieBundle);
-                displayMovieTrailerAndReviewDetails(trailerAndReviewInfoMovie);
-            }
-            else {
-                Log.d(LOG_TAG,"Setting as empty");
-                setEmptyListView(MovieConstants.NO_MOVIE);
             }
         }
         favStar.setOnClickListener(favStarListener);

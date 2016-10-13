@@ -20,6 +20,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.GridView;
 import android.widget.ImageView;
@@ -45,6 +46,8 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
     SharedPreferences sharedPrefs;
     Boolean refresh;
     String oldSortOrder;
+    int position;
+    View listView;
 
     @Nullable
     @Override
@@ -52,10 +55,12 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
     {
         Log.d(LOG_TAG,"onCreateView == "+savedInstanceState);
         View rootView = inflater.inflate(R.layout.fragment_movie,container,false);
+        listView = inflater.inflate(R.layout.movie_list_item,container,false);
         spinner = (ProgressBar)rootView.findViewById(R.id.spinner);
         placeHolderImage = (ImageView)rootView.findViewById(R.id.placeHolderImage);
         movieListView = (GridView)rootView.findViewById(R.id.list);
         sharedPrefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
+        position = ((MovieSelect) getActivity().getApplication()).getMoviePosition();
         return rootView;
     }
 
@@ -147,6 +152,8 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
             Log.d(LOG_TAG,"Refresh == "+refresh.booleanValue());
             outState.putBoolean("refresh",refresh);
         }
+        Log.d(LOG_TAG,"Position == "+position);
+        ((MovieSelect) getActivity().getApplication()).setMoviePosition(position);
         super.onSaveInstanceState(outState);
     }
 
@@ -284,6 +291,25 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
             setEmptyListView(MovieConstants.EMPTY_TEXT);
             final MovieAdapter adapter = new MovieAdapter(getActivity().getApplicationContext(), allMovies);
             movieListView.setAdapter(adapter);
+            String sortOrder = getPreferencesSetting();
+            Log.d(LOG_TAG,oldSortOrder);
+            Log.d(LOG_TAG,sortOrder);
+            if(sortOrder.equalsIgnoreCase(oldSortOrder)) {
+                movieListView.setSelection(position);
+            }
+            else{
+                movieListView.setSelection(position);
+            }
+            movieListView.setOnScrollListener(new AbsListView.OnScrollListener() {
+                @Override
+                public void onScrollStateChanged(AbsListView absListView, int scrollState) {
+                }
+
+                @Override
+                public void onScroll(AbsListView absListView, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
+                    position = firstVisibleItem;
+                }
+            });
             movieListView.setOnItemClickListener(new AdapterView.OnItemClickListener()
             {
                 @Override

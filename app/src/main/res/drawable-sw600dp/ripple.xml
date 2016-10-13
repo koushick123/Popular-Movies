@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:state_pressed="true">
-        <shape android:shape="rectangle">
+        <shape android:shape="rectangle" android:thickness="16sp">
             <solid android:color="@color/movie_selected" />
         </shape>
     </item>
     <item android:state_activated="true">
-        <shape android:shape="rectangle">
+        <shape android:shape="rectangle"  android:thickness="16sp">
             <solid android:color="@color/movie_selected" />
         </shape>
     </item>

@@ -11,6 +11,15 @@ public class MovieSelect extends Application {
     private Movie movieInfo;
     private Bundle movieBund;
     private String movieSetting;
+    private int moviePosition;
+
+    public int getMoviePosition() {
+        return moviePosition;
+    }
+
+    public void setMoviePosition(int moviePosition) {
+        this.moviePosition = moviePosition;
+    }
 
     public String getMovieSetting() {
         return movieSetting;
