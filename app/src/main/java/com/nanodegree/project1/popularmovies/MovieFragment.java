@@ -48,6 +48,8 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
     String oldSortOrder;
     int position;
     View listView;
+    Bundle savedState;
+    boolean tabletMode;
 
     @Nullable
     @Override
@@ -80,6 +82,8 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         Log.d(LOG_TAG,"onActivityCreated");
+        tabletMode = ((MovieSelect) getActivity().getApplication()).isTabletMode();
+        savedState = savedInstanceState;
         if(savedInstanceState != null)
         {
             ArrayList<Movie> movies = savedInstanceState.getParcelableArrayList("parcelMovies");
@@ -110,9 +114,19 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
         }
         else
         {
-            oldSortOrder = getPreferencesSetting();
-            Log.d(LOG_TAG,"Sort order == "+oldSortOrder);
-            if(!oldSortOrder.equalsIgnoreCase(getResources().getString(R.string.settings_order_by_favorites_value)))
+            if(tabletMode){
+                oldSortOrder = ((MovieSelect) getActivity().getApplication()).getMovieSetting();
+                Log.d(LOG_TAG,"old Sort order === "+oldSortOrder);
+                if(oldSortOrder == null){
+                    oldSortOrder = getPreferencesSetting();
+                }
+            }
+            else {
+                oldSortOrder = getPreferencesSetting();
+            }
+            Log.d(LOG_TAG,"Old Sort order === "+oldSortOrder);
+            String sortOrder = getPreferencesSetting();
+            if(!sortOrder.equalsIgnoreCase(getResources().getString(R.string.settings_order_by_favorites_value)))
             {
                 if(checkIfInternetIsAvailable())
                 {
@@ -146,6 +160,7 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
         {
             Log.d(LOG_TAG, "Saving SORT ORDER before destruction..." + oldSortOrder);
             outState.putString("oldSortOrder",oldSortOrder);
+            ((MovieSelect) getActivity().getApplication()).setMovieSetting(oldSortOrder);
         }
         if(refresh != null)
         {
@@ -199,7 +214,8 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
     @Override
     public void onStart()
     {
-        Log.d(LOG_TAG,"OnStart");
+        Log.d(LOG_TAG,"OnStart -> "+savedState);
+        Log.d(LOG_TAG,"Old Sort Order -> "+oldSortOrder);
         super.onStart();
         getActivity().registerReceiver(getBroadcastReceiver(),new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
     }
@@ -210,8 +226,15 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
         super.onResume();
         Log.d(LOG_TAG,"onResume -> "+allMovies);
         String sortOrder = getPreferencesSetting();
+        Log.d(LOG_TAG,"saved state == "+savedState);
+        if(savedState == null){
+            oldSortOrder = ((MovieSelect)getActivity().getApplication()).getMovieSetting();
+        }
+        changeActionBar(sortOrder);
         Log.d(LOG_TAG,"Sort Order -> "+sortOrder);
         Log.d(LOG_TAG,"Old Sort Order -> "+oldSortOrder);
+        Log.d(LOG_TAG,"Resources == "+getResources());
+        Log.d(LOG_TAG,"setting == "+getResources().getString(R.string.settings_order_by_favorites_value));
         if(allMovies == null || (!sortOrder.equalsIgnoreCase(oldSortOrder)))
         {
             if(sortOrder.equalsIgnoreCase(getResources().getString(R.string.settings_order_by_favorites_value)))
@@ -292,14 +315,12 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
             final MovieAdapter adapter = new MovieAdapter(getActivity().getApplicationContext(), allMovies);
             movieListView.setAdapter(adapter);
             String sortOrder = getPreferencesSetting();
-            Log.d(LOG_TAG,oldSortOrder);
+            Log.d(LOG_TAG,oldSortOrder!=null?oldSortOrder:"");
             Log.d(LOG_TAG,sortOrder);
-            if(sortOrder.equalsIgnoreCase(oldSortOrder)) {
-                movieListView.setSelection(position);
+            if(!sortOrder.equalsIgnoreCase(oldSortOrder)) {
+                position = 0;
             }
-            else{
-                movieListView.setSelection(position);
-            }
+            movieListView.setSelection(position);
             movieListView.setOnScrollListener(new AbsListView.OnScrollListener() {
                 @Override
                 public void onScrollStateChanged(AbsListView absListView, int scrollState) {
@@ -432,27 +453,34 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
 
     private void loadFavoriteMovies()
     {
-        Cursor favMovies = getActivity().getContentResolver().query(Uri.parse(MovieTableConstants.BASE_CONTENT_URI+"/allMovies"),null,null,null,null);
-        Log.d(LOG_TAG,"FAv movie count === "+favMovies.getCount());
-        if(favMovies.getCount() == 0){
-            allMovies = null;
-            setEmptyListView(MovieConstants.NO_FAVORITES);
+        Cursor favMovies = null;
+        try {
+            favMovies = getActivity().getContentResolver().query(Uri.parse(MovieTableConstants.BASE_CONTENT_URI+"/allMovies"),null,null,null,null);
+            Log.d(LOG_TAG, "FAv movie count === " + favMovies.getCount());
+            if (favMovies.getCount() == 0) {
+                allMovies = null;
+                setEmptyListView(MovieConstants.NO_FAVORITES);
+            } else {
+                favMovies.moveToFirst();
+                ArrayList<Movie> myFavMovies = new ArrayList<Movie>();
+                do {
+                    String title = favMovies.getString(favMovies.getColumnIndex(MovieTableConstants.HEADING));
+                    String synopsis = favMovies.getString(favMovies.getColumnIndex(MovieTableConstants.SYNOPSIS));
+                    int userRating = favMovies.getInt(favMovies.getColumnIndex(MovieTableConstants.USER_RATING));
+                    String releaseDate = favMovies.getString(favMovies.getColumnIndex(MovieTableConstants.RELEASE_DATE));
+                    long Id = favMovies.getLong(favMovies.getColumnIndex(MovieTableConstants.MOVIE_ID));
+                    long dbId = favMovies.getLong(favMovies.getColumnIndex(MovieTableConstants.ID));
+                    byte[] thumbnail = favMovies.getBlob(favMovies.getColumnIndex(MovieTableConstants.THUMBNAIL));
+                    Movie dbMovies = new Movie(title, null, synopsis, userRating, releaseDate, Id, thumbnail, dbId);
+                    myFavMovies.add(dbMovies);
+                } while (favMovies.moveToNext());
+                updateMovies(myFavMovies);
+            }
         }
-        else{
-            favMovies.moveToFirst();
-            ArrayList<Movie> myFavMovies = new ArrayList<Movie>();
-            do{
-                String title = favMovies.getString(favMovies.getColumnIndex(MovieTableConstants.HEADING));
-                String synopsis = favMovies.getString(favMovies.getColumnIndex(MovieTableConstants.SYNOPSIS));
-                int userRating = favMovies.getInt(favMovies.getColumnIndex(MovieTableConstants.USER_RATING));
-                String releaseDate = favMovies.getString(favMovies.getColumnIndex(MovieTableConstants.RELEASE_DATE));
-                long Id = favMovies.getLong(favMovies.getColumnIndex(MovieTableConstants.MOVIE_ID));
-                long dbId = favMovies.getLong(favMovies.getColumnIndex(MovieTableConstants.ID));
-                byte[] thumbnail = favMovies.getBlob(favMovies.getColumnIndex(MovieTableConstants.THUMBNAIL));
-                Movie dbMovies = new Movie(title,null,synopsis,userRating,releaseDate,Id,thumbnail,dbId);
-                myFavMovies.add(dbMovies);
-            }while(favMovies.moveToNext());
-            updateMovies(myFavMovies);
+        finally {
+            if(favMovies != null){
+                favMovies.close();
+            }
         }
     }
 
@@ -461,5 +489,18 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
         return sharedPrefs.getString(
                 getString(R.string.settings_order_by_key),
                 getString(R.string.settings_order_by_default));
+    }
+
+    private void changeActionBar(String sortOrder)
+    {
+        if(sortOrder.equalsIgnoreCase("top_rated")){
+            getActivity().setTitle("Top Rated Movies");
+        }
+        else if(sortOrder.equalsIgnoreCase("popular")){
+            getActivity().setTitle("Popular Movies");
+        }
+        else{
+            getActivity().setTitle("My Favorites");
+        }
     }
 }

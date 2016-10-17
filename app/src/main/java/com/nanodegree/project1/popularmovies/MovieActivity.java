@@ -3,12 +3,14 @@ package com.nanodegree.project1.popularmovies;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
-public class MovieActivity extends AppCompatActivity implements MovieFragment.Callback{
+public class MovieActivity extends AppCompatActivity implements MovieFragment.Callback, MovieDetailFragment.DetailCallback{
 
     private static final String DETAILFRAGMENT_TAG = "DFTAG";
+    public static final String LOG_TAG = MovieActivity.class.getName();
     private boolean mTwoPane;
 
     @Override
@@ -71,6 +73,28 @@ public class MovieActivity extends AppCompatActivity implements MovieFragment.Ca
             movieDetailActivity.putExtra("movieDetail",movieDetail);
             movieDetailActivity.putExtra("isTwoPane",mTwoPane);
             startActivity(movieDetailActivity);
+        }
+    }
+
+    @Override
+    public void onItemRemove(Movie[] movieDetail){
+
+        Log.d(LOG_TAG,"onItemRemove");
+        if(mTwoPane){
+            MovieFragment movieFragment = new MovieFragment();
+            Bundle movie = new Bundle();
+            movie.putParcelableArray("updatedFavMovies", movieDetail);
+            movie.putBoolean("isTwoPane",new Boolean(true));
+            movie.putBoolean("isSelected",new Boolean(false));
+            movieFragment.setArguments(movie);
+            getFragmentManager().beginTransaction()
+                    .replace(R.id.fragment, movieFragment,null)
+            .commit();
+
+            MovieDetailFragment movieDetailFragment = new MovieDetailFragment();
+            getFragmentManager().beginTransaction()
+                    .replace(R.id.fragmentDetail, movieDetailFragment, null)
+                    .commit();
         }
     }
 }

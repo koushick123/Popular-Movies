@@ -175,6 +175,13 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
         return rootView;
     }
 
+    public interface DetailCallback {
+        /**
+         * DetailFragmentCallback for when an item has been selected.
+         */
+        public void onItemRemove(Movie[] movieBundle);
+    }
+
     @Override
     public void onStop()
     {
@@ -301,6 +308,12 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
                     favStar.setImageResource(R.drawable.ic_star_border_black_24dp);
                     dbMovieIdInsertDelete = -1;
                     addedToFav = false;
+                    if(tabletMode){
+                        ((MovieSelect)getActivity().getApplication()).setMovieInfo(null);
+                        ((MovieSelect)getActivity().getApplication()).setMovieBund(null);
+                        ((MovieSelect)getActivity().getApplication()).setMoviePosition(0);
+                        ((DetailCallback)getActivity()).onItemRemove(getUpdatedFavoriteMovies());
+                    }
                 }
             }
         }
@@ -358,6 +371,7 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
     public void onSaveInstanceState(Bundle outState)
     {
         Log.d(LOG_TAG,"OnSaveInstanceState == "+movieBundle+"");
+        Log.d(LOG_TAG,tabletMode+"");
         Movie temp = null;
         if(movieBundle != null)
         {
@@ -376,11 +390,15 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
             }
         }
 
-        if(tabletMode != null && tabletMode.booleanValue() && isSelected.booleanValue()) {
-            Log.d(LOG_TAG,temp+"");
-            Log.d(LOG_TAG,movieBundle+"");
-            ((MovieSelect) getActivity().getApplication()).setMovieInfo(temp);
-            ((MovieSelect) getActivity().getApplication()).setMovieBund(movieBundle);
+        if(tabletMode != null && tabletMode.booleanValue()) {
+            Log.d(LOG_TAG,"Saving tab mode == "+tabletMode.booleanValue()+"");
+            ((MovieSelect) getActivity().getApplication()).setTabletMode(tabletMode.booleanValue());
+            if(isSelected.booleanValue()) {
+                Log.d(LOG_TAG,temp+"");
+                Log.d(LOG_TAG,movieBundle+"");
+                ((MovieSelect) getActivity().getApplication()).setMovieInfo(temp);
+                ((MovieSelect) getActivity().getApplication()).setMovieBund(movieBundle);
+            }
         }
 
         if(addedToFav != null) {
@@ -895,5 +913,37 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
         movieHeading.setVisibility(View.GONE);
         line.setVisibility(View.GONE);
         trailerHeading.setVisibility(View.GONE);
+    }
+
+    private Movie[] getUpdatedFavoriteMovies()
+    {
+        Cursor favMovies=null;
+        ArrayList<Movie> myFavMovies = new ArrayList<Movie>();
+        try {
+            favMovies = getActivity().getContentResolver().query(Uri.parse(MovieTableConstants.BASE_CONTENT_URI + "/allMovies"), null, null, null, null);
+            Log.d(LOG_TAG, "Updated FAv movie count === " + favMovies.getCount());
+            if (favMovies.getCount() == 0) {
+                setEmptyListView(MovieConstants.NO_FAVORITES);
+            } else {
+                favMovies.moveToFirst();
+                do {
+                    String title = favMovies.getString(favMovies.getColumnIndex(MovieTableConstants.HEADING));
+                    String synopsis = favMovies.getString(favMovies.getColumnIndex(MovieTableConstants.SYNOPSIS));
+                    int userRating = favMovies.getInt(favMovies.getColumnIndex(MovieTableConstants.USER_RATING));
+                    String releaseDate = favMovies.getString(favMovies.getColumnIndex(MovieTableConstants.RELEASE_DATE));
+                    long Id = favMovies.getLong(favMovies.getColumnIndex(MovieTableConstants.MOVIE_ID));
+                    long dbId = favMovies.getLong(favMovies.getColumnIndex(MovieTableConstants.ID));
+                    byte[] thumbnail = favMovies.getBlob(favMovies.getColumnIndex(MovieTableConstants.THUMBNAIL));
+                    Movie dbMovies = new Movie(title, null, synopsis, userRating, releaseDate, Id, thumbnail, dbId);
+                    myFavMovies.add(dbMovies);
+                } while (favMovies.moveToNext());
+            }
+        }
+        finally {
+            if(favMovies != null){
+                favMovies.close();
+            }
+        }
+        return myFavMovies.toArray(new Movie[myFavMovies.size()]);
     }
 }
