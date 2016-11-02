@@ -77,13 +77,13 @@ public class MovieActivity extends AppCompatActivity implements MovieFragment.Ca
     }
 
     @Override
-    public void onItemRemove(Movie[] movieDetail){
+    public void onItemRemove(){
 
         Log.d(LOG_TAG,"onItemRemove");
         if(mTwoPane){
             MovieFragment movieFragment = new MovieFragment();
             Bundle movie = new Bundle();
-            movie.putParcelableArray("updatedFavMovies", movieDetail);
+            //movie.putParcelableArray("updatedFavMovies", movieDetail);
             movie.putBoolean("isTwoPane",new Boolean(true));
             movie.putBoolean("isSelected",new Boolean(false));
             movieFragment.setArguments(movie);

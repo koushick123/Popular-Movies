@@ -179,7 +179,7 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
         /**
          * DetailFragmentCallback for when an item has been selected.
          */
-        public void onItemRemove(Movie[] movieBundle);
+        public void onItemRemove();
     }
 
     @Override
@@ -312,7 +312,7 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
                         ((MovieSelect)getActivity().getApplication()).setMovieInfo(null);
                         ((MovieSelect)getActivity().getApplication()).setMovieBund(null);
                         ((MovieSelect)getActivity().getApplication()).setMoviePosition(0);
-                        ((DetailCallback)getActivity()).onItemRemove(getUpdatedFavoriteMovies());
+                        ((DetailCallback)getActivity()).onItemRemove();
                     }
                 }
             }
@@ -913,37 +913,5 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
         movieHeading.setVisibility(View.GONE);
         line.setVisibility(View.GONE);
         trailerHeading.setVisibility(View.GONE);
-    }
-
-    private Movie[] getUpdatedFavoriteMovies()
-    {
-        Cursor favMovies=null;
-        ArrayList<Movie> myFavMovies = new ArrayList<Movie>();
-        try {
-            favMovies = getActivity().getContentResolver().query(Uri.parse(MovieTableConstants.BASE_CONTENT_URI + "/allMovies"), null, null, null, null);
-            Log.d(LOG_TAG, "Updated FAv movie count === " + favMovies.getCount());
-            if (favMovies.getCount() == 0) {
-                setEmptyListView(MovieConstants.NO_FAVORITES);
-            } else {
-                favMovies.moveToFirst();
-                do {
-                    String title = favMovies.getString(favMovies.getColumnIndex(MovieTableConstants.HEADING));
-                    String synopsis = favMovies.getString(favMovies.getColumnIndex(MovieTableConstants.SYNOPSIS));
-                    int userRating = favMovies.getInt(favMovies.getColumnIndex(MovieTableConstants.USER_RATING));
-                    String releaseDate = favMovies.getString(favMovies.getColumnIndex(MovieTableConstants.RELEASE_DATE));
-                    long Id = favMovies.getLong(favMovies.getColumnIndex(MovieTableConstants.MOVIE_ID));
-                    long dbId = favMovies.getLong(favMovies.getColumnIndex(MovieTableConstants.ID));
-                    byte[] thumbnail = favMovies.getBlob(favMovies.getColumnIndex(MovieTableConstants.THUMBNAIL));
-                    Movie dbMovies = new Movie(title, null, synopsis, userRating, releaseDate, Id, thumbnail, dbId);
-                    myFavMovies.add(dbMovies);
-                } while (favMovies.moveToNext());
-            }
-        }
-        finally {
-            if(favMovies != null){
-                favMovies.close();
-            }
-        }
-        return myFavMovies.toArray(new Movie[myFavMovies.size()]);
     }
 }
