@@ -308,7 +308,8 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
                     favStar.setImageResource(R.drawable.ic_star_border_black_24dp);
                     dbMovieIdInsertDelete = -1;
                     addedToFav = false;
-                    if(tabletMode){
+                    String sortOrder = getPreferencesSetting();
+                    if(tabletMode && sortOrder.equalsIgnoreCase(getResources().getString(R.string.settings_order_by_favorites_value))){
                         ((MovieSelect)getActivity().getApplication()).setMovieInfo(null);
                         ((MovieSelect)getActivity().getApplication()).setMovieBund(null);
                         ((MovieSelect)getActivity().getApplication()).setMoviePosition(0);

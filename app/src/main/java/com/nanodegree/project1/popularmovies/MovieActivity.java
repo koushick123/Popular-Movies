@@ -6,6 +6,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.GridView;
 
 public class MovieActivity extends AppCompatActivity implements MovieFragment.Callback, MovieDetailFragment.DetailCallback{
 
@@ -31,6 +32,10 @@ public class MovieActivity extends AppCompatActivity implements MovieFragment.Ca
                         .commit();
             }
         }
+        else{
+            mTwoPane = false;
+        }
+        ((MovieSelect)getApplication()).setTabletMode(mTwoPane);
     }
 
     @Override
@@ -81,15 +86,11 @@ public class MovieActivity extends AppCompatActivity implements MovieFragment.Ca
 
         Log.d(LOG_TAG,"onItemRemove");
         if(mTwoPane){
-            MovieFragment movieFragment = new MovieFragment();
-            Bundle movie = new Bundle();
-            //movie.putParcelableArray("updatedFavMovies", movieDetail);
-            movie.putBoolean("isTwoPane",new Boolean(true));
-            movie.putBoolean("isSelected",new Boolean(false));
-            movieFragment.setArguments(movie);
-            getFragmentManager().beginTransaction()
-                    .replace(R.id.fragment, movieFragment,null)
-            .commit();
+            GridView gridView = (GridView)findViewById(R.id.list);
+            MovieAdapter movieAdapter = (MovieAdapter)gridView.getAdapter();
+            movieAdapter.notifyDataSetChanged();
+            gridView.refreshDrawableState();
+            gridView.setItemChecked(0,false);
 
             MovieDetailFragment movieDetailFragment = new MovieDetailFragment();
             getFragmentManager().beginTransaction()

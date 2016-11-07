@@ -11,7 +11,7 @@ public class MovieSelect extends Application {
     private Movie movieInfo;
     private Bundle movieBund;
     private String movieSetting;
-    private int moviePosition;
+    private int moviePosition = -1;
     private boolean tabletMode;
 
     public boolean isTabletMode() {
