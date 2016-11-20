@@ -1,7 +1,9 @@
 package com.nanodegree.project1.popularmovies;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Menu;
@@ -13,11 +15,16 @@ public class MovieActivity extends AppCompatActivity implements MovieFragment.Ca
     private static final String DETAILFRAGMENT_TAG = "DFTAG";
     public static final String LOG_TAG = MovieActivity.class.getName();
     private boolean mTwoPane;
+    SharedPreferences sharedPrefs;
+    String sortOrder;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);
+        sortOrder = getPreferencesSetting();
         setContentView(R.layout.activity_movie);
+        sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);
         if(findViewById(R.id.fragmentDetail) != null) {
             // The detail container view will be present only in the large-screen layouts
             // (res/layout-sw600dp). If this view is present, then the activity should be
@@ -27,8 +34,11 @@ public class MovieActivity extends AppCompatActivity implements MovieFragment.Ca
             // adding or replacing the detail fragment using a
             // fragment transaction.
             if (savedInstanceState == null) {
-                getFragmentManager().beginTransaction()
+                getSupportFragmentManager().beginTransaction()
                         .replace(R.id.fragmentDetail, new MovieDetailFragment(), DETAILFRAGMENT_TAG)
+                        .commit();
+                getSupportFragmentManager().beginTransaction()
+                        .replace(R.id.fragment, new MovieFragment(), null)
                         .commit();
             }
         }
@@ -36,6 +46,20 @@ public class MovieActivity extends AppCompatActivity implements MovieFragment.Ca
             mTwoPane = false;
         }
         ((MovieSelect)getApplication()).setTabletMode(mTwoPane);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        sortOrder = getPreferencesSetting();
+        changeActionBar(sortOrder);
+    }
+
+    private String getPreferencesSetting()
+    {
+        return sharedPrefs.getString(
+                getString(R.string.settings_order_by_key),
+                getString(R.string.settings_order_by_default));
     }
 
     @Override
@@ -69,7 +93,7 @@ public class MovieActivity extends AppCompatActivity implements MovieFragment.Ca
             movie.putBoolean("isTwoPane",new Boolean(mTwoPane));
             movie.putBoolean("isSelected",new Boolean(true));
             movieDetailFragment.setArguments(movie);
-            getFragmentManager().beginTransaction()
+            getSupportFragmentManager().beginTransaction()
                     .replace(R.id.fragmentDetail, movieDetailFragment, null)
                     .commit();
         }
@@ -86,16 +110,31 @@ public class MovieActivity extends AppCompatActivity implements MovieFragment.Ca
 
         Log.d(LOG_TAG,"onItemRemove");
         if(mTwoPane){
-            GridView gridView = (GridView)findViewById(R.id.list);
-            MovieAdapter movieAdapter = (MovieAdapter)gridView.getAdapter();
-            movieAdapter.notifyDataSetChanged();
-            gridView.refreshDrawableState();
-            gridView.setItemChecked(0,false);
-
-            MovieDetailFragment movieDetailFragment = new MovieDetailFragment();
-            getFragmentManager().beginTransaction()
-                    .replace(R.id.fragmentDetail, movieDetailFragment, null)
+            getSupportFragmentManager().beginTransaction()
+                    .replace(R.id.fragmentDetail, new MovieDetailFragment(), null)
                     .commit();
+
+            MovieFragment movieFragment = new MovieFragment();
+            Bundle delete = new Bundle();
+            delete.putBoolean("deleteMovie",new Boolean(true));
+            movieFragment.setArguments(delete);
+            getSupportFragmentManager().beginTransaction()
+                    .replace(R.id.fragment, movieFragment, null)
+                    .commit();
+            Log.d(LOG_TAG,"Selected POS == "+((MovieSelect)this.getApplicationContext()).getMoviePosition());
+        }
+    }
+
+    private void changeActionBar(String sortOrder)
+    {
+        if(sortOrder.equalsIgnoreCase("top_rated")){
+            this.setTitle("Top Rated Movies");
+        }
+        else if(sortOrder.equalsIgnoreCase("popular")){
+            this.setTitle("Popular Movies");
+        }
+        else{
+            this.setTitle("My Favorites");
         }
     }
 }

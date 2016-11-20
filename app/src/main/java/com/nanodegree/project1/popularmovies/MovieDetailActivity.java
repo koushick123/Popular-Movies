@@ -19,7 +19,7 @@ public class MovieDetailActivity extends AppCompatActivity {
             Bundle movie = new Bundle();
             movie.putParcelable("movieDetail",getIntent().getParcelableExtra("movieDetail"));
             movieDetailFragment.setArguments(movie);
-            getFragmentManager().beginTransaction()
+            getSupportFragmentManager().beginTransaction()
                     .add(R.id.fragmentDetail, movieDetailFragment, null)
                     .commit();
         }

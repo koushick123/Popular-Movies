@@ -107,7 +107,10 @@ public class MovieProvider extends ContentProvider
 
             case GET_ALL_MOVIE:
 
-                getMovie = SQLiteQueryBuilder.buildQueryString(false,MovieTableConstants.MOVIE_TABLE + " movie1 ",null,null,null,null,MovieTableConstants.ID,null );
+                //getMovie = SQLiteQueryBuilder.buildQueryString(false,MovieTableConstants.MOVIE_TABLE + " movie1 ",null,null,null,null,MovieTableConstants.ID,null );
+                getMovie = "SELECT _ID _id, * " +
+                        "FROM movie " +
+                        "order by _ID";
                 movie = getWriteMovieDatabase().rawQuery(getMovie, null);
             break;
 

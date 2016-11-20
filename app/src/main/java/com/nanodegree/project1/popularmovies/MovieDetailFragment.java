@@ -1,13 +1,13 @@
 package com.nanodegree.project1.popularmovies;
 
-import android.app.Fragment;
-import android.app.LoaderManager;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.Loader;
 import android.content.BroadcastReceiver;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.Loader;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.graphics.Bitmap;
@@ -312,7 +312,7 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
                     if(tabletMode && sortOrder.equalsIgnoreCase(getResources().getString(R.string.settings_order_by_favorites_value))){
                         ((MovieSelect)getActivity().getApplication()).setMovieInfo(null);
                         ((MovieSelect)getActivity().getApplication()).setMovieBund(null);
-                        ((MovieSelect)getActivity().getApplication()).setMoviePosition(0);
+                        //((MovieSelect)getActivity().getApplicationContext()).setMoviePosition(0);
                         ((DetailCallback)getActivity()).onItemRemove();
                     }
                 }
