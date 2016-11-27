@@ -721,7 +721,7 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
 
                     //Create a Trailer Info
                     TextView textView = new TextView(getActivity());
-                    textView.setTextSize(getResources().getDimension(R.dimen.trailerAndReviewTextSize));
+                    textView.setTextSize(getResources().getDimension(R.dimen.trailerAndReviewHeadingTextSize));
                     textView.setText(movieTrailerAndReview.getTrailerName()[i]);
                     params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
                     params.gravity = Gravity.CENTER;

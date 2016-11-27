@@ -10,7 +10,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.GridView;
 
-public class MovieActivity extends AppCompatActivity implements MovieFragment.Callback, MovieDetailFragment.DetailCallback{
+public class MovieActivity extends AppCompatActivity implements MovieFragment.Callback, MovieDetailFragment.DetailCallback, MovieFavoritesFragment.Callback{
 
     private static final String DETAILFRAGMENT_TAG = "DFTAG";
     public static final String LOG_TAG = MovieActivity.class.getName();
@@ -24,7 +24,6 @@ public class MovieActivity extends AppCompatActivity implements MovieFragment.Ca
         sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);
         sortOrder = getPreferencesSetting();
         setContentView(R.layout.activity_movie);
-        sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);
         if(findViewById(R.id.fragmentDetail) != null) {
             // The detail container view will be present only in the large-screen layouts
             // (res/layout-sw600dp). If this view is present, then the activity should be
@@ -37,9 +36,16 @@ public class MovieActivity extends AppCompatActivity implements MovieFragment.Ca
                 getSupportFragmentManager().beginTransaction()
                         .replace(R.id.fragmentDetail, new MovieDetailFragment(), DETAILFRAGMENT_TAG)
                         .commit();
-                getSupportFragmentManager().beginTransaction()
-                        .replace(R.id.fragment, new MovieFragment(), null)
-                        .commit();
+                if(sortOrder.equalsIgnoreCase(getResources().getString(R.string.settings_order_by_favorites_value))){
+                    getSupportFragmentManager().beginTransaction()
+                            .replace(R.id.fragment, new MovieFavoritesFragment(), null)
+                            .commit();
+                }
+                else {
+                    getSupportFragmentManager().beginTransaction()
+                            .replace(R.id.fragment, new MovieFragment(), null)
+                            .commit();
+                }
             }
         }
         else{
@@ -51,8 +57,19 @@ public class MovieActivity extends AppCompatActivity implements MovieFragment.Ca
     @Override
     protected void onResume() {
         super.onResume();
+        Log.d(LOG_TAG,"onResume");
         sortOrder = getPreferencesSetting();
         changeActionBar(sortOrder);
+        if(sortOrder.equalsIgnoreCase(getResources().getString(R.string.settings_order_by_favorites_value))){
+            getSupportFragmentManager().beginTransaction()
+                    .replace(R.id.fragment, new MovieFavoritesFragment(), null)
+                    .commit();
+        }
+        else{
+            getSupportFragmentManager().beginTransaction()
+                    .replace(R.id.fragment, new MovieFragment(), null)
+                    .commit();
+        }
     }
 
     private String getPreferencesSetting()
@@ -121,7 +138,6 @@ public class MovieActivity extends AppCompatActivity implements MovieFragment.Ca
             getSupportFragmentManager().beginTransaction()
                     .replace(R.id.fragment, movieFragment, null)
                     .commit();
-            Log.d(LOG_TAG,"Selected POS == "+((MovieSelect)this.getApplicationContext()).getMoviePosition());
         }
     }
 
@@ -136,5 +152,19 @@ public class MovieActivity extends AppCompatActivity implements MovieFragment.Ca
         else{
             this.setTitle("My Favorites");
         }
+    }
+
+    @Override
+    public void onFavItemSelected(Movie movieBundle) {
+
+        MovieDetailFragment movieDetailFragment = new MovieDetailFragment();
+        Bundle movie = new Bundle();
+        movie.putParcelable("movieDetail",movieBundle);
+        movie.putBoolean("isSelected",new Boolean(true));
+        movie.putBoolean("isTwoPane",new Boolean(mTwoPane));
+        movieDetailFragment.setArguments(movie);
+        getSupportFragmentManager().beginTransaction()
+                .replace(R.id.fragmentDetail, movieDetailFragment, null)
+                .commit();
     }
 }
