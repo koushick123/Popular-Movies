@@ -485,8 +485,10 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
             else if(isSelected && trailerAndReviewInfoMovie == null && movieBundle != null)
             {
                 hideTopMovieInfo();
-                Log.d(LOG_TAG,"load selected movie");
-                checkAndLoadMovies();
+                if(!getPreferencesSetting().equalsIgnoreCase(getResources().getString(R.string.settings_order_by_favorites_value))){
+                    Log.d(LOG_TAG,"load selected movie");
+                    checkAndLoadMovies();
+                }
             }
             else if(movieBundle == null)
             {
@@ -784,7 +786,6 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
             reviewText.setLayoutParams(params);
             reviewText.setText(getResources().getString(R.string.reviewHeading));
             reviewText.setTextSize(getResources().getDimension(R.dimen.trailerAndReviewHeadingTextSize));
-            //reviewLinearLayout.addView(reviewText);
 
             if(movieTrailerAndReview.getAuthors().length > 0)
             {

@@ -48,11 +48,9 @@ public class MovieCursorAdapter extends CursorAdapter {
 
     @Override
     public void bindView(View view, Context context, Cursor cursor) {
-        Log.d(LOG_TAG,"Heading == "+cursor.getString(cursor.getColumnIndex(MovieTableConstants.HEADING))+" Position == "+cursor.getPosition());
-        Log.d(LOG_TAG,"Synopsis == "+cursor.getString(cursor.getColumnIndex(MovieTableConstants.SYNOPSIS)));
-        Log.d(LOG_TAG,"ID = "+cursor.getLong(cursor.getColumnIndex(MovieTableConstants.ID)));
         byte[] thumbnail = cursor.getBlob(cursor.getColumnIndex(MovieTableConstants.THUMBNAIL));
         Bitmap moviePoster = BitmapFactory.decodeByteArray(thumbnail,0,thumbnail.length);
+        movieThumbnail = (ImageView)view.findViewById(R.id.moviePoster);
         movieThumbnail.setImageBitmap(moviePoster);
     }
 }

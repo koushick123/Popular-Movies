@@ -35,6 +35,7 @@ public class MovieFavoritesFragment extends Fragment implements LoaderManager.Lo
     SharedPreferences sharedPrefs;
     boolean tabletMode;
     int selectionPosition = -1;
+    Bundle savedState;
     public static final String LOG_TAG = MovieFavoritesFragment.class.getName();
 
     @Nullable
@@ -71,13 +72,37 @@ public class MovieFavoritesFragment extends Fragment implements LoaderManager.Lo
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         Log.d(LOG_TAG,"onActivityCreated");
         super.onActivityCreated(savedInstanceState);
+        if(savedInstanceState != null){
+            oldSortOrder = savedInstanceState.getString("oldSortOrder");
+        }
+        tabletMode = ((MovieSelect) getActivity().getApplication()).isTabletMode();
+        savedState = savedInstanceState;
         getLoaderManager().initLoader(1,null,this);
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        //Save the old sort order , to get it back when fragment is resumed.
+        oldSortOrder = getPreferencesSetting();
+        if(oldSortOrder != null)
+        {
+            Log.d(LOG_TAG, "Saving SORT ORDER before destruction..." + oldSortOrder);
+            outState.putString("oldSortOrder",oldSortOrder);
+            ((MovieSelect) getActivity().getApplication()).setMovieSetting(oldSortOrder);
+        }
+        Log.d(LOG_TAG,"Position == "+selectionPosition);
+        ((MovieSelect)getActivity().getApplicationContext()).setMoviePosition(selectionPosition);
+        super.onSaveInstanceState(outState);
     }
 
     @Override
     public void onResume() {
         super.onResume();
         Log.d(LOG_TAG,"onResume");
+        Log.d(LOG_TAG,"saved state == "+savedState);
+        if(savedState == null){
+            oldSortOrder = ((MovieSelect)getActivity().getApplication()).getMovieSetting();
+        }
     }
 
     @Override
@@ -88,6 +113,9 @@ public class MovieFavoritesFragment extends Fragment implements LoaderManager.Lo
 
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+        String sortOrder = getPreferencesSetting();
+
+        oldSortOrder = sortOrder;
         return new CursorLoader(getContext(), Uri.parse(MovieTableConstants.BASE_CONTENT_URI+"/allMovies"),null,null,null,null);
     }
 
@@ -96,7 +124,9 @@ public class MovieFavoritesFragment extends Fragment implements LoaderManager.Lo
         Log.d(LOG_TAG,"onLoadFinished == "+(data!=null?data.getCount():"No data"));
         cursorAdapter.swapCursor(data);
 
-        /*String sortOrder = getPreferencesSetting();
+        String sortOrder = getPreferencesSetting();
+        Log.d(LOG_TAG,"sort order === "+sortOrder+", tabletMode == "+tabletMode);
+        Log.d(LOG_TAG,"old sort order === "+oldSortOrder);
         if(tabletMode) {
             if(deleteMovie != null && deleteMovie.booleanValue()){
                 if(selectionPosition == 0){
@@ -109,6 +139,7 @@ public class MovieFavoritesFragment extends Fragment implements LoaderManager.Lo
                 movieListView.setSelection(selectionPosition);
             }
             else {
+                Log.d(LOG_TAG,"selected position == "+selectionPosition);
                 if (!sortOrder.equalsIgnoreCase(oldSortOrder)) {
                     selectionPosition = 0;
                     ((MovieSelect) getActivity().getApplicationContext()).setMoviePosition(selectionPosition);
@@ -121,7 +152,7 @@ public class MovieFavoritesFragment extends Fragment implements LoaderManager.Lo
                     movieListView.setItemChecked(0, false);
                 }
             }
-        }*/
+        }
 
         movieListView.setOnItemClickListener(new AdapterView.OnItemClickListener()
         {
@@ -139,7 +170,6 @@ public class MovieFavoritesFragment extends Fragment implements LoaderManager.Lo
                 byte[] thumbnail = data.getBlob(data.getColumnIndex(MovieTableConstants.THUMBNAIL));
                 Movie dbMovies = new Movie(title, null, synopsis, userRating, releaseDate, Id, thumbnail, dbId);
                 deleteMovie = new Boolean(false);
-                //dbMovies.setMovieThumbnail(null);
                 selectionPosition = movieListView.getCheckedItemPosition();
                 Log.d(LOG_TAG,"selection position SET == "+selectionPosition);
                 ((MovieSelect)getActivity().getApplicationContext()).setMoviePosition(selectionPosition);
