@@ -8,7 +8,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.GridView;
 
 public class MovieActivity extends AppCompatActivity implements MovieFragment.Callback, MovieDetailFragment.DetailCallback, MovieFavoritesFragment.Callback{
 
@@ -169,14 +168,23 @@ public class MovieActivity extends AppCompatActivity implements MovieFragment.Ca
     @Override
     public void onFavItemSelected(Movie movieBundle) {
 
-        MovieDetailFragment movieDetailFragment = new MovieDetailFragment();
-        Bundle movie = new Bundle();
-        movie.putParcelable("movieDetail",movieBundle);
-        movie.putBoolean("isSelected",new Boolean(true));
-        movie.putBoolean("isTwoPane",new Boolean(mTwoPane));
-        movieDetailFragment.setArguments(movie);
-        getSupportFragmentManager().beginTransaction()
-                .replace(R.id.fragmentDetail, movieDetailFragment, null)
-                .commit();
+        Log.d(LOG_TAG,"Fav item selected mTwopane == "+mTwoPane);
+        if(mTwoPane) {
+            MovieDetailFragment movieDetailFragment = new MovieDetailFragment();
+            Bundle movie = new Bundle();
+            movie.putParcelable("movieDetail", movieBundle);
+            movie.putBoolean("isSelected", new Boolean(true));
+            movie.putBoolean("isTwoPane", new Boolean(mTwoPane));
+            movieDetailFragment.setArguments(movie);
+            getSupportFragmentManager().beginTransaction()
+                    .replace(R.id.fragmentDetail, movieDetailFragment, null)
+                    .commit();
+        }
+        else{
+            Intent movieDetailActivity = new Intent(this, MovieDetailActivity.class);
+            movieDetailActivity.putExtra("movieDetail",movieBundle);
+            movieDetailActivity.putExtra("isTwoPane",mTwoPane);
+            startActivity(movieDetailActivity);
+        }
     }
 }

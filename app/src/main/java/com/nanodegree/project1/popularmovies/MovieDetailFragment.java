@@ -309,7 +309,7 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
                     dbMovieIdInsertDelete = -1;
                     addedToFav = false;
                     String sortOrder = getPreferencesSetting();
-                    if(tabletMode && sortOrder.equalsIgnoreCase(getResources().getString(R.string.settings_order_by_favorites_value))){
+                    if(tabletMode.booleanValue() && sortOrder.equalsIgnoreCase(getResources().getString(R.string.settings_order_by_favorites_value))){
                         ((MovieSelect)getActivity().getApplication()).setMovieInfo(null);
                         ((MovieSelect)getActivity().getApplication()).setMovieBund(null);
                         //((MovieSelect)getActivity().getApplicationContext()).setMoviePosition(0);
@@ -505,7 +505,8 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
         else
         {
             hideTopMovieInfo();
-            if(!getPreferencesSetting().equalsIgnoreCase(getResources().getString(R.string.settings_order_by_favorites_value))) {
+            if(!getPreferencesSetting().equalsIgnoreCase(getResources().getString(R.string.settings_order_by_favorites_value)) && (movieBundle != null && trailerAndReviewInfoMovie == null)) {
+                Log.d(LOG_TAG,"load movie from network");
                 checkAndLoadMovies();
             }
         }
@@ -614,7 +615,13 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
                     trailerAndReviewInfoMovie.setAuthors(authors.toArray(new String[authors.size()]));
                     displayMovieDetails(movieBundle);
                     displayMovieTrailerAndReviewDetails(trailerAndReviewInfoMovie);
-                } else {
+                }
+                else if(trailerAndReviewInfoMovie != null && movieBundle != null){
+                    Log.d(LOG_TAG,"display movie details");
+                    displayMovieDetails(movieBundle);
+                    displayMovieTrailerAndReviewDetails(trailerAndReviewInfoMovie);
+                }
+                else {
                     Log.d(LOG_TAG, "Setting as empty");
                     setEmptyListView(MovieConstants.NO_MOVIE);
                 }
