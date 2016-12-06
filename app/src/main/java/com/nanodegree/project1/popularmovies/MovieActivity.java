@@ -100,6 +100,7 @@ public class MovieActivity extends AppCompatActivity implements MovieFragment.Ca
     @Override
     public void onItemSelected(Movie movieDetail) {
 
+        Log.d(LOG_TAG,"Tablet === >"+mTwoPane);
         if(mTwoPane){
             // In two-pane mode, show the detail view in this activity by
             // adding or replacing the detail fragment using a
@@ -131,13 +132,24 @@ public class MovieActivity extends AppCompatActivity implements MovieFragment.Ca
                     .replace(R.id.fragmentDetail, new MovieDetailFragment(), null)
                     .commit();
 
-            MovieFragment movieFragment = new MovieFragment();
-            Bundle delete = new Bundle();
-            delete.putBoolean("deleteMovie",new Boolean(true));
-            movieFragment.setArguments(delete);
-            getSupportFragmentManager().beginTransaction()
-                    .replace(R.id.fragment, movieFragment, null)
-                    .commit();
+            if(getPreferencesSetting().equalsIgnoreCase(getResources().getString(R.string.settings_order_by_favorites_value))){
+                MovieFavoritesFragment movieFavoritesFragment = new MovieFavoritesFragment();
+                Bundle delete = new Bundle();
+                delete.putBoolean("deleteMovie", new Boolean(true));
+                movieFavoritesFragment.setArguments(delete);
+                getSupportFragmentManager().beginTransaction()
+                        .replace(R.id.fragment, movieFavoritesFragment, null)
+                        .commit();
+            }
+            else {
+                MovieFragment movieFragment = new MovieFragment();
+                Bundle delete = new Bundle();
+                delete.putBoolean("deleteMovie", new Boolean(true));
+                movieFragment.setArguments(delete);
+                getSupportFragmentManager().beginTransaction()
+                        .replace(R.id.fragment, movieFragment, null)
+                        .commit();
+            }
         }
     }
 

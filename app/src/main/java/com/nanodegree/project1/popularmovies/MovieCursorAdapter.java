@@ -47,6 +47,11 @@ public class MovieCursorAdapter extends CursorAdapter {
     }
 
     @Override
+    public void changeCursor(Cursor cursor) {
+        super.changeCursor(cursor);
+    }
+
+    @Override
     public void bindView(View view, Context context, Cursor cursor) {
         byte[] thumbnail = cursor.getBlob(cursor.getColumnIndex(MovieTableConstants.THUMBNAIL));
         Bitmap moviePoster = BitmapFactory.decodeByteArray(thumbnail,0,thumbnail.length);

@@ -1,6 +1,7 @@
 package com.nanodegree.project1.popularmovies;
 
 import android.content.SharedPreferences;
+import android.content.res.Configuration;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
@@ -17,9 +18,10 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.GridView;
 import android.widget.ImageView;
-import android.widget.ProgressBar;
 
 import com.nanodegree.project1.popularmovies.data.MovieTableConstants;
+
+import java.util.ArrayList;
 
 /**
  * Created by koushick on 21-Nov-16.
@@ -28,7 +30,6 @@ public class MovieFavoritesFragment extends Fragment implements LoaderManager.Lo
 
     private GridView movieListView;
     private ImageView placeHolderImage;
-    private View listView;
     private MovieCursorAdapter cursorAdapter;
     Boolean deleteMovie;
     String oldSortOrder;
@@ -46,7 +47,6 @@ public class MovieFavoritesFragment extends Fragment implements LoaderManager.Lo
             deleteMovie = getArguments().getBoolean("deleteMovie");
         }
         View rootView = inflater.inflate(R.layout.fragment_favorite_movie,container,false);
-        listView = inflater.inflate(R.layout.movie_list_item,container,false);
         placeHolderImage = (ImageView)rootView.findViewById(R.id.placeHolderFavImage);
         movieListView = (GridView)rootView.findViewById(R.id.favList);
         sharedPrefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
@@ -76,8 +76,8 @@ public class MovieFavoritesFragment extends Fragment implements LoaderManager.Lo
             oldSortOrder = savedInstanceState.getString("oldSortOrder");
         }
         tabletMode = ((MovieSelect) getActivity().getApplication()).isTabletMode();
-        savedState = savedInstanceState;
         getLoaderManager().initLoader(1,null,this);
+        savedState = savedInstanceState;
     }
 
     @Override
@@ -122,7 +122,27 @@ public class MovieFavoritesFragment extends Fragment implements LoaderManager.Lo
     @Override
     public void onLoadFinished(Loader<Cursor> loader, final Cursor data) {
         Log.d(LOG_TAG,"onLoadFinished == "+(data!=null?data.getCount():"No data"));
-        cursorAdapter.swapCursor(data);
+        if(data.getCount() == 0){
+            placeHolderImage.setVisibility(View.VISIBLE);
+            placeHolderImage.setImageResource(R.drawable.no_favorites);
+            movieListView.setAdapter(cursorAdapter);
+            cursorAdapter.notifyDataSetChanged();
+            movieListView.setEmptyView(placeHolderImage);
+        }
+        else {
+            cursorAdapter.swapCursor(data);
+        }
+
+        int orientation = getActivity().getApplicationContext().getResources().getConfiguration().orientation;
+
+        if(orientation == Configuration.ORIENTATION_LANDSCAPE)
+        {
+            movieListView.setNumColumns(3);
+        }
+        else if (orientation == Configuration.ORIENTATION_PORTRAIT)
+        {
+            movieListView.setNumColumns(2);
+        }
 
         String sortOrder = getPreferencesSetting();
         Log.d(LOG_TAG,"sort order === "+sortOrder+", tabletMode == "+tabletMode);

@@ -46,7 +46,6 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
     Boolean refresh;
     String oldSortOrder;
     int selectionPosition = -1;
-    View listView;
     Bundle savedState;
     Boolean deleteMovie;
     boolean tabletMode;
@@ -61,7 +60,6 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
             deleteMovie = getArguments().getBoolean("deleteMovie");
         }
         View rootView = inflater.inflate(R.layout.fragment_movie,container,false);
-        listView = inflater.inflate(R.layout.movie_list_item,container,false);
         spinner = (ProgressBar)rootView.findViewById(R.id.spinner);
         placeHolderImage = (ImageView)rootView.findViewById(R.id.placeHolderImage);
         movieListView = (GridView)rootView.findViewById(R.id.list);
@@ -135,6 +133,7 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
             {
                 if(checkIfInternetIsAvailable())
                 {
+                    Log.d(LOG_TAG,"Internet available");
                     checkAndLoadMovies();
                 }
                 else
