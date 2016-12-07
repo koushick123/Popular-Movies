@@ -505,9 +505,13 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
         else
         {
             hideTopMovieInfo();
-            if(!getPreferencesSetting().equalsIgnoreCase(getResources().getString(R.string.settings_order_by_favorites_value)) && (movieBundle != null && trailerAndReviewInfoMovie == null)) {
+            if(!getPreferencesSetting().equalsIgnoreCase(getResources().getString(R.string.settings_order_by_favorites_value)) && trailerAndReviewInfoMovie == null) {
                 Log.d(LOG_TAG,"load movie from network");
                 checkAndLoadMovies();
+            }
+            else if (trailerAndReviewInfoMovie != null){
+                displayMovieDetails(movieBundle);
+                displayMovieTrailerAndReviewDetails(trailerAndReviewInfoMovie);
             }
         }
 
