@@ -21,8 +21,6 @@ import android.widget.ImageView;
 
 import com.nanodegree.project1.popularmovies.data.MovieTableConstants;
 
-import java.util.ArrayList;
-
 /**
  * Created by koushick on 21-Nov-16.
  */
@@ -187,13 +185,11 @@ public class MovieFavoritesFragment extends Fragment implements LoaderManager.Lo
                 String releaseDate = data.getString(data.getColumnIndex(MovieTableConstants.RELEASE_DATE));
                 long Id = data.getLong(data.getColumnIndex(MovieTableConstants.MOVIE_ID));
                 long dbId = data.getLong(data.getColumnIndex(MovieTableConstants.ID));
-                byte[] thumbnail = data.getBlob(data.getColumnIndex(MovieTableConstants.THUMBNAIL));
-                Movie dbMovies = new Movie(title, null, synopsis, userRating, releaseDate, Id, thumbnail, dbId);
+                Movie dbMovies = new Movie(title, null, synopsis, userRating, releaseDate, Id, null, dbId);
                 deleteMovie = new Boolean(false);
                 selectionPosition = movieListView.getCheckedItemPosition();
                 Log.d(LOG_TAG,"selection position SET == "+selectionPosition);
                 ((MovieSelect)getActivity().getApplicationContext()).setMoviePosition(selectionPosition);
-                Log.d(LOG_TAG,"Selected item == "+movieListView.getSelectedItemId());
                 ((Callback)getActivity()).onFavItemSelected(dbMovies);
             }
         });

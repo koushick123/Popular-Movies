@@ -323,29 +323,28 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
             final MovieAdapter adapter = new MovieAdapter(getActivity().getApplicationContext(), allMovies);
             movieListView.setAdapter(adapter);
             Log.d(LOG_TAG,"selection position == "+selectionPosition+", delete movie == "+deleteMovie);
-            if(tabletMode) {
-                if(deleteMovie != null && deleteMovie.booleanValue()){
-                    if(selectionPosition == 0){
-                        selectionPosition++;
-                    }
-                    else if (selectionPosition > 0){
-                        selectionPosition--;
-                    }
-                    Log.d(LOG_TAG,"scroll to "+selectionPosition);
-                    movieListView.setSelection(selectionPosition);
-                }
-                else {
-                    if (!sortOrder.equalsIgnoreCase(oldSortOrder)) {
-                        selectionPosition = 0;
-                        ((MovieSelect) getActivity().getApplicationContext()).setMoviePosition(selectionPosition);
-                    }
 
-                    if (((MovieSelect) getActivity().getApplication()).getMoviePosition() != -1) {
-                        movieListView.setSelection(selectionPosition);
-                        movieListView.setItemChecked(selectionPosition, true);
-                    } else {
-                        movieListView.setItemChecked(0, false);
-                    }
+            if(deleteMovie != null && deleteMovie.booleanValue()){
+                if(selectionPosition == 0){
+                    selectionPosition++;
+                }
+                else if (selectionPosition > 0){
+                    selectionPosition--;
+                }
+                Log.d(LOG_TAG,"scroll to "+selectionPosition);
+                movieListView.setSelection(selectionPosition);
+            }
+            else {
+                if (!sortOrder.equalsIgnoreCase(oldSortOrder)) {
+                    selectionPosition = 0;
+                    ((MovieSelect) getActivity().getApplicationContext()).setMoviePosition(selectionPosition);
+                }
+
+                if (((MovieSelect) getActivity().getApplication()).getMoviePosition() != -1) {
+                    movieListView.setSelection(selectionPosition);
+                    movieListView.setItemChecked(selectionPosition, true);
+                } else {
+                    movieListView.setItemChecked(0, false);
                 }
             }
             movieListView.setOnItemClickListener(new AdapterView.OnItemClickListener()
