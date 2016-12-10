@@ -114,7 +114,7 @@
         android:layout_marginTop="@dimen/trailerHeadMarginTop"
         android:layout_marginBottom="@dimen/trailerHeadMarginBottom"
         android:id="@+id/trailerHeading"
-        android:textSize="@dimen/trailerTextSize"
+        android:textSize="@dimen/trailerAndReviewHeadingTextSize"
         android:text="@string/trailerHeading"
         />
 

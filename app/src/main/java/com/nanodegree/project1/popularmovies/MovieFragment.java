@@ -20,6 +20,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.GridView;
 import android.widget.ImageView;
@@ -49,6 +50,8 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
     Bundle savedState;
     Boolean deleteMovie;
     boolean tabletMode;
+    int scrollPosition = -1;
+    private Boolean isSelected = null;
 
     @Nullable
     @Override
@@ -65,6 +68,10 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
         movieListView = (GridView)rootView.findViewById(R.id.list);
         sharedPrefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
         selectionPosition = ((MovieSelect)getActivity().getApplicationContext()).getMoviePosition();
+        scrollPosition = ((MovieSelect)getActivity().getApplicationContext()).getScrollPosition();
+        if(savedInstanceState != null){
+            isSelected = savedInstanceState.getBoolean("isSelected");
+        }
         Log.d(LOG_TAG,"selection position GET == "+selectionPosition);
         return rootView;
     }
@@ -173,6 +180,11 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
         }
         Log.d(LOG_TAG,"Position == "+selectionPosition);
         ((MovieSelect)getActivity().getApplicationContext()).setMoviePosition(selectionPosition);
+        Log.d(LOG_TAG,"Saving isSelected == "+isSelected);
+        if(isSelected != null){
+            outState.putBoolean("isSelected",isSelected);
+        }
+        ((MovieSelect)getActivity().getApplicationContext()).setScrollPosition(scrollPosition);
         super.onSaveInstanceState(outState);
     }
 
@@ -236,8 +248,6 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
         }
         Log.d(LOG_TAG,"Sort Order -> "+sortOrder);
         Log.d(LOG_TAG,"Old Sort Order -> "+oldSortOrder);
-        Log.d(LOG_TAG,"Resources == "+getResources());
-        Log.d(LOG_TAG,"setting == "+getResources().getString(R.string.settings_order_by_favorites_value));
         if(allMovies == null || (!sortOrder.equalsIgnoreCase(oldSortOrder)))
         {
             if(sortOrder.equalsIgnoreCase(getResources().getString(R.string.settings_order_by_favorites_value)))
@@ -332,21 +342,38 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
                     selectionPosition--;
                 }
                 Log.d(LOG_TAG,"scroll to "+selectionPosition);
-                movieListView.setSelection(selectionPosition);
+                //movieListView.setSelection(selectionPosition);
             }
             else {
                 if (!sortOrder.equalsIgnoreCase(oldSortOrder)) {
-                    selectionPosition = 0;
+                    selectionPosition = -1;
+                    scrollPosition = -1;
+                    Log.d(LOG_TAG,"reset selection position");
                     ((MovieSelect) getActivity().getApplicationContext()).setMoviePosition(selectionPosition);
+                    ((MovieSelect) getActivity().getApplicationContext()).setScrollPosition(scrollPosition);
                 }
 
-                if (((MovieSelect) getActivity().getApplication()).getMoviePosition() != -1) {
-                    movieListView.setSelection(selectionPosition);
-                    movieListView.setItemChecked(selectionPosition, true);
-                } else {
-                    movieListView.setItemChecked(0, false);
+                if (((MovieSelect) getActivity().getApplication()).getScrollPosition() != -1) {
+                    movieListView.setSelection(scrollPosition);
+                    if (((MovieSelect) getActivity().getApplication()).getMoviePosition() != -1) {
+                        if(isSelected != null && isSelected.booleanValue()) {
+                            movieListView.setItemChecked(selectionPosition, true);
+                        }
+                    }
                 }
             }
+            movieListView.setOnScrollListener(new AbsListView.OnScrollListener() {
+                @Override
+                public void onScrollStateChanged(AbsListView absListView, int i) {
+
+                }
+
+                @Override
+                public void onScroll(AbsListView absListView, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
+                    scrollPosition = firstVisibleItem;
+                }
+            });
+
             movieListView.setOnItemClickListener(new AdapterView.OnItemClickListener()
             {
                 @Override
@@ -354,10 +381,14 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
                 {
                     Log.d(LOG_TAG,"========Item clicked......");
                     Movie temp = allMovies.get(position);
-                    deleteMovie = new Boolean(false);
+                    deleteMovie = null;
                     temp.setMovieThumbnail(null);
-                    selectionPosition = movieListView.getCheckedItemPosition();
-                    Log.d(LOG_TAG,"selection position SET == "+selectionPosition);
+                    Log.d(LOG_TAG,"selection position SET == "+position);
+                    if(tabletMode) {
+                        isSelected = Boolean.TRUE;
+                    }
+                    selectionPosition = position;
+                    scrollPosition = position;
                     ((MovieSelect)getActivity().getApplicationContext()).setMoviePosition(selectionPosition);
                     Log.d(LOG_TAG,"Selected item == "+movieListView.getSelectedItemId());
                     ((Callback)getActivity()).onItemSelected(temp);

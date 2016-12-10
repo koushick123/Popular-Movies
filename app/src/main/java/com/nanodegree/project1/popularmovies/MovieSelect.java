@@ -12,6 +12,7 @@ public class MovieSelect extends Application {
     private Bundle movieBund;
     private String movieSetting;
     private int moviePosition = -1;
+    private int scrollPosition = -1;
     private boolean tabletMode;
 
     public boolean isTabletMode() {
@@ -52,5 +53,13 @@ public class MovieSelect extends Application {
 
     public void setMovieInfo(Movie movieInfo) {
         this.movieInfo = movieInfo;
+    }
+
+    public int getScrollPosition() {
+        return scrollPosition;
+    }
+
+    public void setScrollPosition(int scrollPosition) {
+        this.scrollPosition = scrollPosition;
     }
 }

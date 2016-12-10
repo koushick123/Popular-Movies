@@ -1,7 +1,7 @@
 package com.nanodegree.project1.popularmovies;
 
-import android.support.v4.content.AsyncTaskLoader;
 import android.content.Context;
+import android.support.v4.content.AsyncTaskLoader;
 import android.util.Log;
 
 import java.io.BufferedReader;
@@ -11,6 +11,7 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.UnknownHostException;
 import java.nio.charset.Charset;
 import java.util.List;
 
@@ -50,7 +51,12 @@ public class MovieLoader extends AsyncTaskLoader<List<Movie>> {
                         String jsonResp = readFromStream(inputStream);
                         return JSONUtils.extractMovieDetails(jsonResp);
                     }
-                } catch (IOException e) {
+                }
+
+                catch(UnknownHostException unknown){
+                    unknown.printStackTrace();
+                }
+                catch (IOException e) {
                     e.printStackTrace();
                 }
             } catch (MalformedURLException e) {

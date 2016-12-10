@@ -21,8 +21,8 @@ public class MovieActivity extends AppCompatActivity implements MovieFragment.Ca
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);
-        sortOrder = getPreferencesSetting();
         setContentView(R.layout.activity_movie);
+        Log.d(LOG_TAG,"önCreate");
         if(findViewById(R.id.fragmentDetail) != null) {
             // The detail container view will be present only in the large-screen layouts
             // (res/layout-sw600dp). If this view is present, then the activity should be
@@ -32,6 +32,7 @@ public class MovieActivity extends AppCompatActivity implements MovieFragment.Ca
             // adding or replacing the detail fragment using a
             // fragment transaction.
             if (savedInstanceState == null) {
+                sortOrder = getPreferencesSetting();
                 getSupportFragmentManager().beginTransaction()
                         .replace(R.id.fragmentDetail, new MovieDetailFragment(), DETAILFRAGMENT_TAG)
                         .commit();
