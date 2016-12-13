@@ -23,6 +23,7 @@ public class MovieActivity extends AppCompatActivity implements MovieFragment.Ca
         sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);
         setContentView(R.layout.activity_movie);
         Log.d(LOG_TAG,"önCreate");
+        sortOrder = getPreferencesSetting();
         if(findViewById(R.id.fragmentDetail) != null) {
             // The detail container view will be present only in the large-screen layouts
             // (res/layout-sw600dp). If this view is present, then the activity should be
@@ -32,7 +33,6 @@ public class MovieActivity extends AppCompatActivity implements MovieFragment.Ca
             // adding or replacing the detail fragment using a
             // fragment transaction.
             if (savedInstanceState == null) {
-                sortOrder = getPreferencesSetting();
                 getSupportFragmentManager().beginTransaction()
                         .replace(R.id.fragmentDetail, new MovieDetailFragment(), DETAILFRAGMENT_TAG)
                         .commit();
@@ -48,9 +48,22 @@ public class MovieActivity extends AppCompatActivity implements MovieFragment.Ca
                 }
             }
         }
-        else{
+        else {
             mTwoPane = false;
+            if(savedInstanceState == null) {
+                if (sortOrder.equalsIgnoreCase(getResources().getString(R.string.settings_order_by_favorites_value))) {
+                    getSupportFragmentManager().beginTransaction()
+                            .replace(R.id.fragment, new MovieFavoritesFragment(), null)
+                            .commit();
+
+                } else {
+                    getSupportFragmentManager().beginTransaction()
+                            .replace(R.id.fragment, new MovieFragment(), null)
+                            .commit();
+                }
+            }
         }
+        ((MovieSelect)this.getApplication()).setMovieFragmentsLoaded(true);
         ((MovieSelect)getApplication()).setTabletMode(mTwoPane);
     }
 
@@ -60,16 +73,28 @@ public class MovieActivity extends AppCompatActivity implements MovieFragment.Ca
         Log.d(LOG_TAG,"onResume");
         sortOrder = getPreferencesSetting();
         changeActionBar(sortOrder);
-        if(sortOrder.equalsIgnoreCase(getResources().getString(R.string.settings_order_by_favorites_value))){
-            getSupportFragmentManager().beginTransaction()
-                    .replace(R.id.fragment, new MovieFavoritesFragment(), null)
-                    .commit();
+        boolean movieFragmentLoaded = ((MovieSelect)this.getApplication()).isMovieFragmentsLoaded();
+        Log.d(LOG_TAG,"movieFragmentLoaded "+movieFragmentLoaded );
+        if(!movieFragmentLoaded){
+            if(mTwoPane) {
+                getSupportFragmentManager().beginTransaction()
+                        .replace(R.id.fragmentDetail, new MovieDetailFragment(), DETAILFRAGMENT_TAG)
+                        .commit();
+            }
+            if (sortOrder.equalsIgnoreCase(getResources().getString(R.string.settings_order_by_favorites_value))) {
+                Log.d(LOG_TAG,"setting movie FAV fragment..");
+                getSupportFragmentManager().beginTransaction()
+                        .replace(R.id.fragment, new MovieFavoritesFragment(), null)
+                        .commit();
+
+            } else {
+                Log.d(LOG_TAG,"setting movie fragment..");
+                getSupportFragmentManager().beginTransaction()
+                        .replace(R.id.fragment, new MovieFragment(), null)
+                        .commit();
+            }
         }
-        else{
-            getSupportFragmentManager().beginTransaction()
-                    .replace(R.id.fragment, new MovieFragment(), null)
-                    .commit();
-        }
+        ((MovieSelect)this.getApplication()).setMovieFragmentsLoaded(false);
     }
 
     private String getPreferencesSetting()

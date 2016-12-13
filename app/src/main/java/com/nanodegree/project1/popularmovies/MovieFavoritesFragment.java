@@ -37,7 +37,6 @@ public class MovieFavoritesFragment extends Fragment implements LoaderManager.Lo
     int selectionPosition = -1;
     Bundle savedState;
     int scrollPosition = -1;
-    private Boolean isSelected = null;
     public static final String LOG_TAG = MovieFavoritesFragment.class.getName();
 
     @Nullable
@@ -55,9 +54,6 @@ public class MovieFavoritesFragment extends Fragment implements LoaderManager.Lo
         movieListView.setAdapter(cursorAdapter);
         selectionPosition = ((MovieSelect)getActivity().getApplicationContext()).getMoviePosition();
         scrollPosition = ((MovieSelect)getActivity().getApplicationContext()).getScrollPosition();
-        if(savedInstanceState != null){
-            isSelected = savedInstanceState.getBoolean("isSelected");
-        }
         return rootView;
     }
 
@@ -97,9 +93,6 @@ public class MovieFavoritesFragment extends Fragment implements LoaderManager.Lo
         }
         Log.d(LOG_TAG,"Position == "+selectionPosition);
         ((MovieSelect)getActivity().getApplicationContext()).setMoviePosition(selectionPosition);
-        if(isSelected != null){
-            outState.putBoolean("isSelected",isSelected);
-        }
         ((MovieSelect)getActivity().getApplicationContext()).setScrollPosition(scrollPosition);
         super.onSaveInstanceState(outState);
     }
@@ -156,7 +149,7 @@ public class MovieFavoritesFragment extends Fragment implements LoaderManager.Lo
         String sortOrder = getPreferencesSetting();
         Log.d(LOG_TAG,"sort order === "+sortOrder+", tabletMode == "+tabletMode);
         Log.d(LOG_TAG,"old sort order === "+oldSortOrder);
-        if(deleteMovie != null && deleteMovie.booleanValue()){
+        if(tabletMode && (deleteMovie != null && deleteMovie.booleanValue())){
             if(selectionPosition == 0){
                 selectionPosition++;
             }
@@ -167,9 +160,6 @@ public class MovieFavoritesFragment extends Fragment implements LoaderManager.Lo
             movieListView.setSelection(selectionPosition);
             //Set scroll position to be same as selection, in case of delete
             scrollPosition = selectionPosition;
-            //Remove selection in case of delete
-            isSelected = null;
-            //selectionPosition = -1;
         }
         else {
             Log.d(LOG_TAG,"selected position == "+selectionPosition);
@@ -182,17 +172,17 @@ public class MovieFavoritesFragment extends Fragment implements LoaderManager.Lo
 
             Log.d(LOG_TAG,"scrollPosition == "+scrollPosition);
             if (((MovieSelect) getActivity().getApplication()).getScrollPosition() != -1) {
-                movieListView.setSelection(scrollPosition);
-                if (((MovieSelect) getActivity().getApplication()).getMoviePosition() != -1) {
-                    if(isSelected != null && isSelected.booleanValue()) {
-                        movieListView.setItemChecked(selectionPosition, true);
-                    }
+                movieListView.setSelection(((MovieSelect) getActivity().getApplication()).getScrollPosition());
+                if (((MovieSelect) getActivity().getApplication()).getMoviePosition() != -1 && tabletMode) {
+                    movieListView.setItemChecked(selectionPosition, true);
                 }
             }
-            /*if (((MovieSelect) getActivity().getApplication()).getMoviePosition() != -1) {
-                movieListView.setSelection(selectionPosition);
-                movieListView.setItemChecked(selectionPosition, true);
-            }*/
+            else if (((MovieSelect) getActivity().getApplication()).getMoviePosition() != -1) {
+                movieListView.setSelection(((MovieSelect) getActivity().getApplication()).getMoviePosition());
+                if(tabletMode) {
+                    movieListView.setItemChecked(selectionPosition, true);
+                }
+            }
         }
 
         movieListView.setOnScrollListener(new AbsListView.OnScrollListener() {
@@ -224,9 +214,6 @@ public class MovieFavoritesFragment extends Fragment implements LoaderManager.Lo
                 deleteMovie = new Boolean(false);
                 selectionPosition = position;
                 scrollPosition = position;
-                if(tabletMode) {
-                    isSelected = Boolean.TRUE;
-                }
                 Log.d(LOG_TAG,"selection position SET == "+selectionPosition);
                 ((MovieSelect)getActivity().getApplicationContext()).setMoviePosition(selectionPosition);
                 ((Callback)getActivity()).onFavItemSelected(dbMovies);

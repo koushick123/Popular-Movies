@@ -48,10 +48,8 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
     String oldSortOrder;
     int selectionPosition = -1;
     Bundle savedState;
-    Boolean deleteMovie;
     boolean tabletMode;
     int scrollPosition = -1;
-    private Boolean isSelected = null;
 
     @Nullable
     @Override
@@ -59,9 +57,6 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
     {
         Log.d(LOG_TAG,"onCreateView == "+savedInstanceState);
         Log.d(LOG_TAG,getArguments()+"");
-        if(getArguments() != null){
-            deleteMovie = getArguments().getBoolean("deleteMovie");
-        }
         View rootView = inflater.inflate(R.layout.fragment_movie,container,false);
         spinner = (ProgressBar)rootView.findViewById(R.id.spinner);
         placeHolderImage = (ImageView)rootView.findViewById(R.id.placeHolderImage);
@@ -69,9 +64,6 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
         sharedPrefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
         selectionPosition = ((MovieSelect)getActivity().getApplicationContext()).getMoviePosition();
         scrollPosition = ((MovieSelect)getActivity().getApplicationContext()).getScrollPosition();
-        if(savedInstanceState != null){
-            isSelected = savedInstanceState.getBoolean("isSelected");
-        }
         Log.d(LOG_TAG,"selection position GET == "+selectionPosition);
         return rootView;
     }
@@ -179,11 +171,8 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
             outState.putBoolean("refresh",refresh);
         }
         Log.d(LOG_TAG,"Position == "+selectionPosition);
+        Log.d(LOG_TAG,"SAving scroll Position == "+scrollPosition);
         ((MovieSelect)getActivity().getApplicationContext()).setMoviePosition(selectionPosition);
-        Log.d(LOG_TAG,"Saving isSelected == "+isSelected);
-        if(isSelected != null){
-            outState.putBoolean("isSelected",isSelected);
-        }
         ((MovieSelect)getActivity().getApplicationContext()).setScrollPosition(scrollPosition);
         super.onSaveInstanceState(outState);
     }
@@ -332,36 +321,31 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
             Log.d(LOG_TAG,sortOrder);
             final MovieAdapter adapter = new MovieAdapter(getActivity().getApplicationContext(), allMovies);
             movieListView.setAdapter(adapter);
-            Log.d(LOG_TAG,"selection position == "+selectionPosition+", delete movie == "+deleteMovie);
 
-            if(deleteMovie != null && deleteMovie.booleanValue()){
-                if(selectionPosition == 0){
-                    selectionPosition++;
-                }
-                else if (selectionPosition > 0){
-                    selectionPosition--;
-                }
-                Log.d(LOG_TAG,"scroll to "+selectionPosition);
-                //movieListView.setSelection(selectionPosition);
+            if (!sortOrder.equalsIgnoreCase(oldSortOrder)) {
+                selectionPosition = -1;
+                scrollPosition = -1;
+                Log.d(LOG_TAG,"reset selection position");
+                ((MovieSelect) getActivity().getApplicationContext()).setMoviePosition(selectionPosition);
+                ((MovieSelect) getActivity().getApplicationContext()).setScrollPosition(scrollPosition);
             }
-            else {
-                if (!sortOrder.equalsIgnoreCase(oldSortOrder)) {
-                    selectionPosition = -1;
-                    scrollPosition = -1;
-                    Log.d(LOG_TAG,"reset selection position");
-                    ((MovieSelect) getActivity().getApplicationContext()).setMoviePosition(selectionPosition);
-                    ((MovieSelect) getActivity().getApplicationContext()).setScrollPosition(scrollPosition);
-                }
 
-                if (((MovieSelect) getActivity().getApplication()).getScrollPosition() != -1) {
-                    movieListView.setSelection(scrollPosition);
-                    if (((MovieSelect) getActivity().getApplication()).getMoviePosition() != -1) {
-                        if(isSelected != null && isSelected.booleanValue()) {
-                            movieListView.setItemChecked(selectionPosition, true);
-                        }
-                    }
+            Log.d(LOG_TAG,"scrollPosition == "+scrollPosition);
+            Log.d(LOG_TAG,"Movie position == "+((MovieSelect) getActivity().getApplication()).getMoviePosition());
+
+            if (((MovieSelect) getActivity().getApplication()).getScrollPosition() != -1) {
+                movieListView.setSelection(((MovieSelect) getActivity().getApplication()).getScrollPosition());
+                if (((MovieSelect) getActivity().getApplication()).getMoviePosition() != -1 && tabletMode) {
+                    movieListView.setItemChecked(selectionPosition, true);
                 }
             }
+            else if (((MovieSelect) getActivity().getApplication()).getMoviePosition() != -1) {
+                movieListView.setSelection(((MovieSelect) getActivity().getApplication()).getMoviePosition());
+                if(tabletMode) {
+                    movieListView.setItemChecked(selectionPosition, true);
+                }
+            }
+
             movieListView.setOnScrollListener(new AbsListView.OnScrollListener() {
                 @Override
                 public void onScrollStateChanged(AbsListView absListView, int i) {
@@ -381,12 +365,8 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
                 {
                     Log.d(LOG_TAG,"========Item clicked......");
                     Movie temp = allMovies.get(position);
-                    deleteMovie = null;
                     temp.setMovieThumbnail(null);
                     Log.d(LOG_TAG,"selection position SET == "+position);
-                    if(tabletMode) {
-                        isSelected = Boolean.TRUE;
-                    }
                     selectionPosition = position;
                     scrollPosition = position;
                     ((MovieSelect)getActivity().getApplicationContext()).setMoviePosition(selectionPosition);

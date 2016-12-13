@@ -15,6 +15,16 @@ public class MovieSelect extends Application {
     private int scrollPosition = -1;
     private boolean tabletMode;
 
+    public boolean isMovieFragmentsLoaded() {
+        return movieFragmentsLoaded;
+    }
+
+    public void setMovieFragmentsLoaded(boolean movieFragmentsLoaded) {
+        this.movieFragmentsLoaded = movieFragmentsLoaded;
+    }
+
+    private boolean movieFragmentsLoaded = false;
+
     public boolean isTabletMode() {
         return tabletMode;
     }
