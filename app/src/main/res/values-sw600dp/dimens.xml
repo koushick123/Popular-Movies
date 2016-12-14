@@ -35,6 +35,8 @@
     <dimen name="mediaPlayerMarginRight">20dp</dimen>
     <dimen name="mediaPlayerMarginBottom">15dp</dimen>
 
+    <dimen name="sharingLinkMarginLeft">10dp</dimen>
+
     <dimen name="trailerTextMarginLeft">26dp</dimen>
     <dimen name="trailerTextMarginTop">18dp</dimen>
     <dimen name="trailerTextMarginRight">0dp</dimen>

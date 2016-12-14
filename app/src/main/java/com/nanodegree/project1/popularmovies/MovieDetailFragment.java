@@ -732,6 +732,31 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
                         }
                     });
 
+                    //Add a sharing link
+                    if(i==0){
+                        ImageView sharingLink = new ImageView(getActivity());
+                        params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+                        params.setMargins((int) getResources().getDimension(R.dimen.sharingLinkMarginLeft), (int) getResources().getDimension(R.dimen.mediaPlayerMarginTop),
+                                (int) getResources().getDimension(R.dimen.mediaPlayerMarginRight), (int) getResources().getDimension(R.dimen.mediaPlayerMarginBottom));
+                        params.gravity = Gravity.CENTER;
+                        sharingLink.setImageResource(R.drawable.ic_share_black_24dp);
+                        sharingLink.setLayoutParams(params);
+                        linearLayout.addView(sharingLink);
+                        sharingLink.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View view) {
+                                Intent emailIntent = new Intent(Intent.ACTION_SENDTO);
+                                emailIntent.setData(Uri.parse("mailto:"));
+                                emailIntent.putExtra(Intent.EXTRA_EMAIL,"");
+                                emailIntent.putExtra(Intent.EXTRA_SUBJECT,"Popular Movie Link");
+                                emailIntent.putExtra(Intent.EXTRA_TEXT,Uri.parse(MovieConstants.YOUTUBE_LINK + key).toString());
+                                if (emailIntent.resolveActivity(getActivity().getPackageManager()) != null) {
+                                    startActivity(emailIntent);
+                                }
+                            }
+                        });
+                    }
+
                     //Create a Trailer Info
                     TextView textView = new TextView(getActivity());
                     textView.setTextSize(getResources().getDimension(R.dimen.trailerAndReviewHeadingTextSize));
