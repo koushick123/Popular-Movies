@@ -12,15 +12,6 @@
     This layout is a two-pane layout for the Items master/detail flow.
     -->
 
-    <!--<fragment
-        android:id="@+id/fragment"
-        android:name="com.nanodegree.project1.popularmovies.MovieFragment"
-        android:layout_width="0dp"
-        android:layout_height="match_parent"
-        android:layout_weight="3"
-        tools:layout="@android:layout/list_content"
-        >
-    </fragment>-->
     <FrameLayout
         android:layout_width="0dp"
         android:layout_height="match_parent"

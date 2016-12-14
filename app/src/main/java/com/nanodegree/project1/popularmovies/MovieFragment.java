@@ -172,6 +172,7 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
         }
         Log.d(LOG_TAG,"Position == "+selectionPosition);
         Log.d(LOG_TAG,"SAving scroll Position == "+scrollPosition);
+
         ((MovieSelect)getActivity().getApplicationContext()).setMoviePosition(selectionPosition);
         ((MovieSelect)getActivity().getApplicationContext()).setScrollPosition(scrollPosition);
         super.onSaveInstanceState(outState);
