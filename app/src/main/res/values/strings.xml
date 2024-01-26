@@ -22,7 +22,7 @@
     <string name="settings_order_by_popular_label">Most Popular</string>
     <string name="settings_order_by_popular_value">popular</string>
 
-    <string name="settings_order_by_top_rated_label">Top Rated</string>
+    <string name="settings_order_by_top_rated_label">Top Rated Movies</string>
     <string name="settings_order_by_top_rated_value">top_rated</string>
 
     <string name="settings_order_by_favorites_label">Favorites</string>
